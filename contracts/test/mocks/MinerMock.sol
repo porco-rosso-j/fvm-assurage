@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity >=0.4.25 <=0.8.17;
 
-import {BigNumbers, BigNumber} from "@zondax/solidity-bignumber/src/BigNumbers.sol";
-import "@zondax/filecoin-solidity/contracts/v0.8/types/MinerTypes.sol";
+import "@zondax/types/MinerTypes.sol";
 import { MinerActor } from "../../FilecoinSolidityAPI/MinerActor.sol";
 
 /// @title This contract is a proxy to a built-in Miner actor. Calling one of its methods will result in a cross-actor call being performed. However, in this mock library, no actual call is performed.
@@ -27,10 +26,9 @@ abstract contract MinerAPIMock is MinerActor {
     function mockSetBeneficiary(bytes memory _beneficiary, uint _new_quota, uint64 _new_expiration) public override {
         require(_beneficiary.length == 0);
 
-        BigNumber memory zero = BigNumbers.zero();
         MockBeneficiaryTerm memory term = MockBeneficiaryTerm(
             BigInt(abi.encodePacked(_new_quota), true),
-            BigInt(zero.val, zero.neg),
+            BigInt(abi.encodePacked(0), false),
             _new_expiration
         );
 
