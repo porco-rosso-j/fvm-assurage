@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity 0.8.7;
 
-import "filecoin-solidity/contracts/v0.8/types/MinerTypes.sol";
-import {IMinerActor} from "../../interfaces/IMinerActor.sol";
+import "filecoin-solidity/types/MinerTypes.sol";
+import {IMinerActor} from "src/interfaces/IMinerActor.sol";
 
-contract MinerActorMock is IMinerActor {
+// import {IAssurageManager} from "../../interfaces/IAssurageManager.sol";
+
+contract MinerActorMock is IMinerActor { 
     bytes owner;
     bool isBeneficiarySet = false;
 
@@ -64,5 +66,13 @@ contract MinerActorMock is IMinerActor {
         (bool sent, ) = _target.call{value: _amount}("");
         require(sent, "Failed to send Ether");
     }
+
+
+    /*
+
+
+
+
+    */
     
 }

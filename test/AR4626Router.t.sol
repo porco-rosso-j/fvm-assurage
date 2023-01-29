@@ -1,4 +1,5 @@
-// pragma solidity 0.8.10;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity 0.8.7;
 
 // import {ERC20, MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 // import {MockERC4626} from "solmate/test/utils/mocks/MockERC4626.sol";
