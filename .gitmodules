@@ -1,10 +1,10 @@
 [submodule "lib/solmate"]
-	path = lib/solmate/
+	path = lib/solmate
 	url = https://github.com/transmissions11/solmate
 	branch = v4.8.1
 [submodule "lib/ds-test"]
 	path = lib/ds-test
 	url = https://github.com/dapphub/ds-test
 [submodule "lib/filecoin-solidity"]
-	path = lib/filecoin-solidity/
+	path = lib/filecoin-solidity
 	url = https://github.com/zondax/filecoin-solidity
