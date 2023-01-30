@@ -24,7 +24,7 @@ The size of the sector fault fee is slightly more than the amount the sector is 
 
 ## Insurance for Sector faults
 
-Fault insurance that Assurage provides is the financial protection for those miners who agree the insurance contract and are unwillingly slashed for being faulty on the network. The cover is compensated from the capital supplied by insurers, those who deposit funds to Assurage's Protection vault. The premium cost varies for each individual miner and its sector. It is determined by the miner's reliability and historical performance of covered sectors, as well as the cover amount and period it wants to be protected from slashing. 
+Fault insurance that Assurage provides is the financial protection for those miners who agree the insurance contract and are unwillingly slashed for being faulty on the network. The cover is compensated from the capital supplied by insurers, those who deposit funds to Assurage's Protection vault. The premium cost varies for each individual miner and its sector. It is determined by the cover amount and period it wants to be protected from slashing, as well as the miner's reliability and historical performance of covered sectors. 
 
 ## Architecture 
 
