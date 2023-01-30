@@ -41,6 +41,7 @@ Storage Providers or Miners choose active insurance markets that fit their growt
 ### Liquidity Providers
 Liquidity Providers invest in preferable protection vaults to make profits by allocating their funds based on vaults' APY and the performance and reputation of both Assurage Delegates and insured Storage Providers. The protection vault is ERC4626-standard tokenized vault. Hence, they will receive LP tokens which represent their share of deposits and flexibly change their vault positions via the ERC4626Router contract.
 
+#### Implementation
 The whole smart contract architecture and ERC4626-centric implementation are inspired by Maple Finance, Fei protocol and Yearn Finance. It can be said that the architectual codebase is a modified fork of Maple, but the ERC4626-based Protection Vault and Router contracts are based on implementations of Fei and Yearn. And, Zondax's Solidity API helps Assurage seemlessly interact with Miner Actors on FEVM.
 
 - [Maple Finance](https://github.com/maple-labs)
