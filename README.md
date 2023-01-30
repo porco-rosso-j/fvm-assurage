@@ -71,13 +71,16 @@ After the assessors carefully review the application and approve it after dilige
 
 #### Invalid Applications
 
-Applications that are likely dismissed:
--
--
+SPs whose applications are likely dismissed
+
+- Malicious SPs
+- SPs currently in sector faults
+- 
 
 #### Invalid Claims
 
 Claims that are likely dismissed:
 - Consensus Fault
 - Termination Penalty
+- 
 
