@@ -16,7 +16,7 @@ Assurage is an insurance app built on top of Filecoin EVM, which helps Storage P
 
 Sectors are the basic, standardized units of storage on Filecoin and the sector fault fee is the penalty for SPs not maintaining their operational requirements. This is paid per sector per day while the sector is in a faulty state but not paid the first day the system detects the fault allowing a one day grace period for recovery without fee. 
 
-The size of the sector fault fee is slightly more than the amount the sector is expected to earn per day in block rewards. More concretely, it is 1.5 days Fault Detection Fee and 2.4 days worth of block reward for Sector Fault Fee which is a little higher than the former's since undeclared fault could be seen malicious and more harmful to the network. Additionally, A fee, which is imposed on miners who are terminated by the network for being in a faulty state for too long ( more than 42 days capped up at 90 days ), is called termination fee also charged for a miner where the amount is defined based on the estimation that a sector would have earned per day for the period of the time.
+The size of the sector fault fee is slightly more than the amount the sector is expected to earn per day in block rewards. More concretely, it is 1.5 days Fault Detection Fee and 2.4 days worth of block reward for Sector Fault Fee which is a little higher than the former's since undeclared fault could be seen malicious and more harmful to the network. Additionally, A penalty, which is imposed on miners who are terminated by the network for being in a faulty state for too long ( more than 42 days capped up at 90 days ), is called termination fault in which the amount is defined based on the estimation that a sector would have earned per day for the period of the time.
 
 *Documentation*
 - [How providing storage works](https://docs.filecoin.io/storage-provider/basics/how-providing-storage-works/)
@@ -27,11 +27,11 @@ The size of the sector fault fee is slightly more than the amount the sector is 
 
 Fault insurance that Assurage provides is the financial protection for those miners who agree the insurance contract and are unwillingly slashed for being faulty on the network. The cover is compensated from the capital supplied by insurers, those who deposit funds to Assurage's Protection vault. The premium cost varies for each individual miner and its sector. It is determined by the miner's reliability and historical performance of covered sectors, as well as the cover amount and period it wants to be protected from slashing. 
 
-## Assurage
+## Architecture 
 
 Assurage is an insurance platform for Storage Providers, which is primarily consisted of three parties: The inured, the insurers and Assurage Vault Managers. The first is Storage Providers who purchase protections for sector fault penalties, and the second is depositors who provide the insurance capital to generate profits from SPs' premium payments, and the last one is third parties that create and manage insurance markets on Assurage. 
 
-## Architecture 
+
 
 
 
