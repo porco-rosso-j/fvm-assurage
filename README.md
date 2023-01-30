@@ -59,9 +59,9 @@ premiumFactor = 0.00007
 Score(%) = {1 ~ 100}
 ```
 
-The equation for determining the premium cost is inspired by Nexus Mutual. The cost of premiums increases linearly depending on each factor in the equation.
+The equation for determining the premium cost is inspired by Nexus Mutual, where the premium cost increases linearly depending on each factor in the equation.
 
-For the sake of the prototype, the score values are taken from Filecoin Plus website(https://filfox.info/en/ranks/power) where the scores of top miners mostly range from 90 - 100. According to the website, this value is constructed based on Online Reachability Score, Commited Sectors Proofs Score and Storage Deals Score. In production, however, it can be calculated based on more various factors, such as the performance metrics(the number of sector and deals), financial metrics ( balance, average daily rewards, and culmulative rewards), and the record of histrical fault cases.
+For the sake of the prototype, the score values are taken from [Filecoin Plus](https://filfox.info/en/ranks/power) where the scores of top miners mostly range from 90 - 100. According to the website, this value is constructed based on Online Reachability Score, Commited Sectors Proofs Score and Storage Deals Score. In production, however, it can be calculated based on more various factors, such as the performance metrics(the number of sector and deals), financial metrics ( balance, average daily rewards, and culmulative rewards), and the record of histrical fault cases.
 
 *Example*
 
@@ -71,17 +71,13 @@ After the assessors carefully review the application and approve it after dilige
 
 #### Invalid Applications
 
-Applications that are likely dismissed by assessors are...
-
-- for a improper-tier pVault.
-- from malicious SPs
+Applications that are likely dismissed:
+-
 -
 
 #### Invalid Claims
 
-Below is a few types of claims where assessors shouldn't consider valid because the claim is to compensate the shashing funds due to...
-
+Claims that are likely dismissed:
 - Consensus Fault
 - Termination Penalty
 
-### 
