@@ -28,7 +28,8 @@ Fault insurance that Assurage provides is the financial protection for those min
 
 Assurage is an insurance platform for Storage Providers, which is primarily consisted of three parties: The inured, the insurers and Assurage Managers. The first is Storage Providers who pay premium and purchase protections for sector fault penalties, and the second is Liquidity Providers who provide insurance capital and generate profits (from SPs' premium payments and investments), and the last one is independent third-party agents, called Assurage Delegates, that create and manage insurance markets(Assurage Manager + Protection Vault) on Assurage. 
 
-![Screen Shot 2023-01-30 at 5 12 20](https://user-images.githubusercontent.com/88586592/215368064-bf8a6c2b-893d-4efe-a606-503c3ea64e3a.png)
+<img width="1017" alt="Screen Shot 2023-01-30 at 18 47 56" src="https://user-images.githubusercontent.com/88586592/215509844-4afd0590-6d18-4cbe-b54e-532a5b4f29b4.png">
+
 
 ### Assurage Delegate
 Permissioned Assurage Delegates can create insurance markets by deploying and managing both AssurageManager and ProtectionVault contracts and attract liquidity from LPs and provide insurance policies that SPs purchase. Although they are responsible for assessing and approving/rejecting SPs' applications and claim filings, it's possible to delegate the assessing role to another entity called Assessor if needed. Additionally, it's vital to create strategy contracts where idol deposited capital is invested into other DeFi protocols to generate additional incomes for the vault so that it can attract more LPs and SPs.
