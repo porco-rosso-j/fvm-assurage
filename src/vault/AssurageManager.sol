@@ -11,7 +11,7 @@ import { IAssurageManager } from "../interfaces/IAssurageManager.sol";
 import { ProxiedInternals } from "../proxy/1967Proxy/ProxiedInternals.sol";
 import { AssurageManagerStorage } from "../proxy/AssurageManagerStorage.sol";
 
-import { IMinerActor } from "../interfaces/IMinerActor.sol";
+import { AssurageMinerAPI } from "../filecoin-api/AssurageMinerAPI.sol";
 
 contract AssurageManager is IAssurageManager, ProxiedInternals, AssurageManagerStorage {
 
@@ -105,34 +105,18 @@ contract AssurageManager is IAssurageManager, ProxiedInternals, AssurageManagerS
     }
 
     // ---------------------------------- //
-    // Miner API methods
-    // ---------------------------------- //
-
-    function _verifyBeneficiaryBytesAddr(address _miner) internal view returns(bool) {
-        bytes memory minerBeneficiary = IMinerActor(_miner).getBeneficiary();
-        return keccak256(beneficiaryBytesAddr) == keccak256(minerBeneficiary);
-    }
-
-    function _getAvailableBalance(address _miner) internal view returns(uint) {
-        return IMinerActor(_miner).getAvailableBalance();
-    }
-
-    function _withdrawBalance(address _miner, uint _premium) internal {
-        IMinerActor(_miner).withdrawBalance(address(this), _premium);
-    }
-
-    // ---------------------------------- //
     // Miner Operations for Application/Policy
     // ---------------------------------- //
 
-    function applyForProtection(address _miner, uint _amount, uint _period) public override returns(Policy memory, uint) {
+    function applyForProtection(address _miner, bytes memory _minerId, uint _amount, uint _period) public override returns(Policy memory, uint) {
         require(_miner == msg.sender, "Invalid caller");
-        require(_validateApplication(_miner, _amount, _period), "Invalid Application");
+        require(_validateApplication(_miner, _minerId, _amount, _period), "Invalid Application");
 
         uint newId = policyId[_miner] == 0 ? 1 : (policyId[_miner] + 1);
 
         Policy storage policy = policies[_miner][newId];
         policy.miner = _miner;
+        policy.minerId = _minerId;
         policy.amount = _amount;
         policy.period = _period;
 
@@ -142,23 +126,22 @@ contract AssurageManager is IAssurageManager, ProxiedInternals, AssurageManagerS
         return (policies[_miner][newId], newId);
     }
 
-    function _validateApplication(address _miner, uint _amount, uint _period) internal view returns(bool) {
+    function _validateApplication(address _miner, bytes memory _minerId, uint _amount, uint _period) internal view returns(bool) {
+        require(_minerId.length != 0, "Invalid MinerID");
 
-        require(_verifyBeneficiaryBytesAddr(_miner), "Invalid Beneficiary");
+        bytes memory minerBeneficiary = AssurageMinerAPI.getBeneficiary(_minerId);
+        require(keccak256(beneficiaryBytesAddr) == keccak256(minerBeneficiary), "Invalid Beneficiary");
 
         require(_amount >= minProtection, "Invalid Amount");
         require(_period >= minPeriod, "Invalid Period");
-
-        // uint totalAsset = totalAssets();
-        // uint protectionCapacity = totalAsset * bufferRate / DECIMAL_PRECISION; 
-        // require(totalAsset + _amount <= protectionCapacity, "Insufficient Capacity");
 
         return true;
     }
 
     function activatePolicy(address _miner, uint _id) public override returns(Policy memory) {
-        require( _miner == msg.sender, "Invalid caller");
-        require(_validatePolicyActivation(_miner, _id), "Invalid Activation");
+        require( _miner == msg.sender && _miner == policy.miner, "Invalid Miner");
+        require(policy.isApproved, "Not Approved yet");
+        require(!policy.isActive, "Already activated");
 
         Policy memory policy = policies[_miner][_id];
 
@@ -168,21 +151,11 @@ contract AssurageManager is IAssurageManager, ProxiedInternals, AssurageManagerS
         policy.expiry = block.timestamp + policy.period;
         policy.isActive = true;
 
-        _withdrawAndPayPremium(_miner, premium);
+        _withdrawAndPayPremium(_miner, policy.minerId, premium);
 
         policies[_miner][_id] = policy;
         emit newPolicyActivated(policy, _id);
         return policies[_miner][_id];
-    }
-
-    function _validatePolicyActivation(address _miner, uint _id) internal view returns(bool) {
-         Policy memory policy = policies[_miner][_id];
-
-        require(_miner == policy.miner, "Invalid miner");
-        require(policy.isApproved, "Not Approved yet");
-        require(!policy.isActive, "Already activated");
-
-        return true;
     }
 
     function _quotePremium(uint _amount, uint _peirod, uint8 _score) public view returns(uint) {
@@ -190,38 +163,31 @@ contract AssurageManager is IAssurageManager, ProxiedInternals, AssurageManagerS
         return basePremium * DECIMAL_PRECISION / ( _score * DECIMAL_PRECISION );
     }
 
-    address constant public WFIL = 0x4B7ee45f30767F36f06F79B32BF1FCa6f726DEda;
+    function _withdrawAndPayPremium(address _miner, bytes memory _minerId, uint _premium) internal {
 
-    function _withdrawAndPayPremium(address _miner, uint _premium) internal {
-
-        if ( asset == WFIL ) {
-           uint minerBalance = _getAvailableBalance(_miner);
+           uint minerBalance = AssurageMinerAPI.getAvailableBalance(_minerId);
            require(minerBalance >= _premium, "Insufficient Balance");
 
-           _withdrawBalance(_miner, _premium);
+           bytes memory minerBeneficiary = AssurageMinerAPI.getBeneficiary(_minerId);
+           require(keccak256(beneficiaryBytesAddr) == keccak256(minerBeneficiary), "Beneficiary Not Set");
+
+           (AssurageMinerAPI.withdrawBalance(_minerId, _premium) == premium, "Withdrawal Failed");
            IWFIL(asset).deposit{ value:_premium }();
 
-           require(IERC20(asset).transfer(vault, _premium), "Transfer Failed");
-
-        } else {
-            uint minerBalance = IERC20(asset).balanceOf(_miner);
-            require(minerBalance >= _premium, "Insufficient Balance");
-
-            require(IERC20(asset).transferFrom(_miner, vault, _premium), "Transfer Failed");
-        }
+           require(IWFIL(asset).transfer(vault, _premium), "Transfer Failed");
 
     }
 
     // ---------------------------------- //
     // Miner Operations for Claiming
     // ---------------------------------- //
-    function fileClaim(address _miner, uint _id, uint _claimable) public override {
+    function fileClaim(address _miner, uint _id, uint _claimable, bytes memory _minerId) public override {
        require( _miner == msg.sender, "Invalid caller");
        require( policies[_miner][_id].amount >= _claimable, "claim amount is too large");
 
        uint newId = claimId[_miner] == 0 ? 1 : (claimId[_miner] + 1);
 
-       Claim memory claim = _updateClaim(_miner, _claimable, false, false, newId);
+       Claim memory claim = _updateClaim(_miner, _minerId, _claimable, false, false, newId);
 
        claimId[_miner]++;
 
@@ -239,17 +205,18 @@ contract AssurageManager is IAssurageManager, ProxiedInternals, AssurageManagerS
         uint totalAsset = totalAssets();
         require(totalAsset >= claim.claimable, "Insufficient Vault Liquidity");
 
-        IProtectionVault(vault).sendClaimedFIL(_miner, claim.claimable);
+        IProtectionVault(vault).sendClaimedFIL(claim.minerId, claim.claimable);
         _updateClaim(_miner, claim.claimable, claim.isComfirmed, true, _id);
 
         emit newCompensationPaid(claim, _id);
         return claim.claimable;
     }
 
-    function _updateClaim(address _miner, uint _claimable, bool _isComfirmed, bool _isPaid, uint _id) internal returns(Claim memory) {
+    function _updateClaim(address _miner, bytes memory _minerId, uint _claimable, bool _isComfirmed, bool _isPaid, uint _id) internal returns(Claim memory) {
         Claim storage claim = claims[_miner][_id];
 
         claim.miner = _miner;
+        claim.minerId = _minerId;
         claim.claimable = _claimable;
         claim.isComfirmed = _isComfirmed;
         claim.isPaid = _isPaid;

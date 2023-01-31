@@ -57,6 +57,7 @@ interface IAssurageManagerStorage {
 
     struct Policy {
         address miner;
+        bytes minerId;
         uint amount;
         uint premium;
         uint period;
@@ -68,6 +69,7 @@ interface IAssurageManagerStorage {
 
     struct Claim {
         address miner;
+         bytes minerId;
         uint claimable;
         bool isComfirmed; 
         bool isPaid;    
@@ -75,6 +77,7 @@ interface IAssurageManagerStorage {
 
     function policies(address _miner, uint _id) external view returns (
         address miner, 
+        bytes memory minerId,
         uint amount,
         uint premium,
         uint period,
@@ -86,6 +89,7 @@ interface IAssurageManagerStorage {
     
     function claims(address _miner, uint _id) external view returns (
         address miner,
+        bytes memory minerId,
         uint claimable,
         bool isComfirmed,
         bool isPaid

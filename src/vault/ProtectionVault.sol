@@ -6,7 +6,7 @@ import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 import {IProtectionVault} from "../interfaces/IProtectionVault.sol";
 import {IAssurageManager} from "../interfaces/IAssurageManager.sol";
 import {IWFIL} from "../interfaces/IWFIL.sol";
-import {IMinerActor} from "../interfaces/IMinerActor.sol";
+import {SendAPI} from "filecoin-solidity/SendAPI.sol";
 
 contract ProtectionVault is IProtectionVault, ERC4626 {
     using SafeTransferLib for ERC20;
@@ -176,9 +176,10 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
     // Operatons for Insured ( Miners )
     // ---------------------------------- // 
 
-    function sendClaimedFIL(address _miner, uint _compensation) external override payable nonReentrant onlyAssurageManager {
+    function sendClaimedFIL(bytes memory _miner, uint _compensation) external override payable nonReentrant onlyAssurageManager {
        IWFIL(address(asset)).withdraw(_compensation);
-       SafeTransferLib.safeTransferETH(_miner, _compensation);
+       SendAPI.send(_miner, _compensation);
+       // https://github.com/Zondax/filecoin-solidity/blob/master/contracts/v0.8/SendAPI.sol#L29
     }
 
     // ---------------------------------- //

@@ -26,9 +26,6 @@ abstract contract AssurageManagerStorage is IAssurageManagerStorage {
     uint constant public MAX_DELEGATE_FEE_RATE = 5e17; // 50%
     bytes public override beneficiaryBytesAddr; // Manager's FIL ID (Address bytes)
 
-    uint public totalCovered;
-    uint public bufferRate; // e.g 9e17 90%;
-
     mapping (address => mapping(uint => Policy)) public override policies; // miner => policyId =>　Policy
     mapping (address => uint) public policyId;
 
