@@ -9,3 +9,4 @@
 	path = lib/filecoin-solidity
 	url = https://github.com/zondax/filecoin-solidity
 	ignore = dirty
+    branch = master

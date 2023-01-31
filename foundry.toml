@@ -26,6 +26,7 @@ out = "out"
 solc = "0.8.7"
 src = "src"
 test = "test"
+include_paths = ["./src/core/"]
 
 [profile.ci]
 fuzz = { runs = 10_000 }

@@ -49,7 +49,6 @@ library AssurageMinerAPI {
         MinerTypes.WithdrawBalanceParams memory param;
         param.amount_requested = BytesHelper.toBytes(_amount);
         MinerTypes.WithdrawBalanceReturn memory result = MinerAPI.withdrawBalance(_miner, param);
-        return bytesToUint(result.amount_withdrawn);
-
+        return BytesHelper.bytesToUint(result.amount_withdrawn);
     }
 }
