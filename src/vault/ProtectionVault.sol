@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity 0.8.7;
+pragma solidity 0.8.17;
 
 import {ERC4626, ERC20} from "solmate/mixins/ERC4626.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
@@ -21,7 +21,7 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
             msg.sender == assurageManager,
             "Only callable by AssurageManager"
         );
-    
+
         _;
     }
 
@@ -40,12 +40,15 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
         address _assurageManager,
         address _migrationAdmin,
         uint256 _bootstrapMint,
-        uint _initialSupply,
+        uint256 _initialSupply,
         string memory _name,
         string memory _symbol
     ) ERC4626(ERC20(_asset), _name, _symbol) {
         require(_asset != address(0), "Invalid Owner");
-        require((assurageManager =_assurageManager) != address(0), "Invalid Owner");
+        require(
+            (assurageManager = _assurageManager) != address(0),
+            "Invalid Owner"
+        );
 
         if (_initialSupply != 0) {
             _mint(_migrationAdmin, _initialSupply);
@@ -53,13 +56,21 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
 
         BOOTSTRAP_MINT = _bootstrapMint;
 
-        SafeTransferLib.safeApprove(ERC20(_asset), _assurageManager, type(uint256).max);
+        SafeTransferLib.safeApprove(
+            ERC20(_asset),
+            _assurageManager,
+            type(uint256).max
+        );
     }
 
     // ---------------------------------- //
     // Vault Configuretion
     // ---------------------------------- //
-    function setAssurageManager(address _assurageManager) public override onlyAssurageManager {
+    function setAssurageManager(address _assurageManager)
+        public
+        override
+        onlyAssurageManager
+    {
         require(_assurageManager != address(0), "Invalid Address");
         assurageManager = _assurageManager;
     }
@@ -68,7 +79,13 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
     // Operations for Insurers
     // ---------------------------------- //
 
-    function deposit(uint256 assets, address receiver) public virtual override nonReentrant returns (uint256 shares) {
+    function deposit(uint256 assets, address receiver)
+        public
+        virtual
+        override
+        nonReentrant
+        returns (uint256 shares)
+    {
         // Check for rounding error since we round down in previewDeposit.
         require((shares = previewDeposit(assets)) != 0, "ZERO_SHARES");
 
@@ -86,17 +103,21 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
         uint256 assets,
         address receiver,
         uint256 deadline,
-        uint8   v,
+        uint8 v,
         bytes32 r,
         bytes32 s
-    )
-        external override nonReentrant returns (uint256 shares)
-    {
+    ) external override nonReentrant returns (uint256 shares) {
         asset.permit(msg.sender, address(this), assets, deadline, v, r, s);
         shares = deposit(assets, receiver);
     }
 
-    function mint(uint256 shares, address receiver) public virtual override nonReentrant returns (uint256 assets) {
+    function mint(uint256 shares, address receiver)
+        public
+        virtual
+        override
+        nonReentrant
+        returns (uint256 assets)
+    {
         assets = previewMint(shares); // No need to check for rounding error, previewMint rounds up.
 
         // Need to transfer before minting or ERC777s could reenter.
@@ -114,13 +135,14 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
         address receiver,
         uint256 maxAssets,
         uint256 deadline,
-        uint8   v,
+        uint8 v,
         bytes32 r,
         bytes32 s
-    )
-        external override nonReentrant returns (uint256 assets)
-    {
-        require((assets = previewMint(shares)) <= maxAssets, "P:MWP:INSUFFICIENT_PERMIT");
+    ) external override nonReentrant returns (uint256 assets) {
+        require(
+            (assets = previewMint(shares)) <= maxAssets,
+            "P:MWP:INSUFFICIENT_PERMIT"
+        );
 
         asset.permit(msg.sender, address(this), maxAssets, deadline, v, r, s);
         assets = mint(shares, receiver);
@@ -137,7 +159,8 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
         if (msg.sender != owner) {
             uint256 allowed = allowance[owner][msg.sender]; // Saves gas for limited approvals.
 
-            if (allowed != type(uint256).max) allowance[owner][msg.sender] = allowed - shares;
+            if (allowed != type(uint256).max)
+                allowance[owner][msg.sender] = allowed - shares;
         }
 
         // beforeWithdraw(assets, shares);
@@ -158,7 +181,8 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
         if (msg.sender != owner) {
             uint256 allowed = allowance[owner][msg.sender]; // Saves gas for limited approvals.
 
-            if (allowed != type(uint256).max) allowance[owner][msg.sender] = allowed - shares;
+            if (allowed != type(uint256).max)
+                allowance[owner][msg.sender] = allowed - shares;
         }
 
         // Check for rounding error since we round down in previewRedeem.
@@ -172,27 +196,33 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
 
         asset.safeTransfer(receiver, assets);
     }
+
     // ---------------------------------- //
     // Operatons for Insured ( Miners )
-    // ---------------------------------- // 
+    // ---------------------------------- //
 
-    function sendClaimedFIL(bytes memory _miner, uint _compensation) external override payable nonReentrant onlyAssurageManager {
-       IWFIL(address(asset)).withdraw(_compensation);
-       SendAPI.send(_miner, _compensation);
-       // https://github.com/Zondax/filecoin-solidity/blob/master/contracts/v0.8/SendAPI.sol#L29
+    function sendClaimedFIL(bytes memory _miner, uint256 _compensation)
+        external
+        payable
+        override
+        nonReentrant
+        onlyAssurageManager
+    {
+        IWFIL(address(asset)).withdraw(_compensation);
+        SendAPI.send(_miner, _compensation);
+        // https://github.com/Zondax/filecoin-solidity/blob/master/contracts/v0.8/SendAPI.sol#L29
     }
 
     // ---------------------------------- //
     // ERC4626 Implementations ( Miners )
-    // ---------------------------------- // 
+    // ---------------------------------- //
 
     function totalAssets() public view virtual override returns (uint256) {
         return IAssurageManager(assurageManager).totalAssets();
     }
 
     receive() external payable {
-        IWFIL(address(asset)).deposit{ value:msg.value }();
+        IWFIL(address(asset)).deposit{value: msg.value}();
         deposit(msg.value, msg.sender);
     }
 }
-

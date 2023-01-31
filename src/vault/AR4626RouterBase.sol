@@ -1,15 +1,20 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity 0.8.7;
+pragma solidity 0.8.17;
 
 import {IERC4626, IAR4626RouterBase, ERC20} from "../interfaces/IAR4626RouterBase.sol";
-import { SafeTransferLib } from "solmate/utils/SafeTransferLib.sol";
+import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 
 import {SelfPermit} from "./external/SelfPermit.sol";
 import {Multicall} from "./external/Multicall.sol";
 import {PeripheryPayments} from "./external/PeripheryPayments.sol";
 
 /// @title ERC4626 Router Base Contract
-abstract contract AR4626RouterBase is IAR4626RouterBase, SelfPermit, Multicall, PeripheryPayments {
+abstract contract AR4626RouterBase is
+    IAR4626RouterBase,
+    SelfPermit,
+    Multicall,
+    PeripheryPayments
+{
     using SafeTransferLib for ERC20;
 
     function mint(
@@ -40,7 +45,9 @@ abstract contract AR4626RouterBase is IAR4626RouterBase, SelfPermit, Multicall, 
         uint256 amount,
         uint256 maxSharesOut
     ) public payable virtual override returns (uint256 sharesOut) {
-        if ((sharesOut = vault.withdraw(amount, to, msg.sender)) > maxSharesOut) {
+        if (
+            (sharesOut = vault.withdraw(amount, to, msg.sender)) > maxSharesOut
+        ) {
             revert MaxSharesError();
         }
     }

@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity 0.8.7;
+pragma solidity 0.8.17;
 
 interface IAssurageManagerStorage {
-
     /**
      *  @dev    Returns whether or not a vault is active.
      *  @return active True if the vault is active.
@@ -31,7 +30,10 @@ interface IAssurageManagerStorage {
      *  @dev    Gets the delegate management fee rate.
      *  @return delegateManagementFeeRate The value for the delegate management fee rate.
      */
-    function delegateManagementFeeRate() external view returns (uint256 delegateManagementFeeRate);
+    function delegateManagementFeeRate()
+        external
+        view
+        returns (uint256 delegateManagementFeeRate);
 
     /**
      *  @dev    Gets the address of the vault.
@@ -43,25 +45,31 @@ interface IAssurageManagerStorage {
      *  @dev    Gets the address of the vault delegate.
      *  @return assurageDelegate The address of the vault delegate.
      */
-    function assurageDelegate() external view returns (address assurageDelegate);
+    function assurageDelegate()
+        external
+        view
+        returns (address assurageDelegate);
 
-    function premiumFactor() external view returns (uint premiumFactor);
+    function premiumFactor() external view returns (uint256 premiumFactor);
 
-    function minProtection() external view returns (uint minProtection);
-    
-    function minPeriod() external view returns (uint minPeriod);
+    function minProtection() external view returns (uint256 minProtection);
 
-    function beneficiaryBytesAddr() external view returns (bytes memory beneficiaryBytesAddr);
+    function minPeriod() external view returns (uint256 minPeriod);
+
+    function beneficiaryBytesAddr()
+        external
+        view
+        returns (bytes memory beneficiaryBytesAddr);
 
     function assessor() external view returns (address assessor);
 
     struct Policy {
         address miner;
         bytes minerId;
-        uint amount;
-        uint premium;
-        uint period;
-        uint expiry;
+        uint256 amount;
+        uint256 premium;
+        uint256 period;
+        uint256 expiry;
         uint8 score;
         bool isApproved;
         bool isActive;
@@ -69,39 +77,49 @@ interface IAssurageManagerStorage {
 
     struct Claim {
         address miner;
-         bytes minerId;
-        uint claimable;
-        bool isComfirmed; 
-        bool isPaid;    
+        bytes minerId;
+        uint256 claimable;
+        bool isComfirmed;
+        bool isPaid;
     }
 
-    function policies(address _miner, uint _id) external view returns (
-        address miner, 
-        bytes memory minerId,
-        uint amount,
-        uint premium,
-        uint period,
-        uint expiry,
-        uint8 score,
-        bool isApproved,
-        bool isActive
+    function policies(address _miner, uint256 _id)
+        external
+        view
+        returns (
+            address miner,
+            bytes memory minerId,
+            uint256 amount,
+            uint256 premium,
+            uint256 period,
+            uint256 expiry,
+            uint8 score,
+            bool isApproved,
+            bool isActive
         );
-    
-    function claims(address _miner, uint _id) external view returns (
-        address miner,
-        bytes memory minerId,
-        uint claimable,
-        bool isComfirmed,
-        bool isPaid
-    );
 
+    function claims(address _miner, uint256 _id)
+        external
+        view
+        returns (
+            address miner,
+            bytes memory minerId,
+            uint256 claimable,
+            bool isComfirmed,
+            bool isPaid
+        );
 
-    function isAssessor(address _assessor) external view returns (bool isAssessor);
+    function isAssessor(address _assessor)
+        external
+        view
+        returns (bool isAssessor);
 
-    function strategyList(uint _index) external view returns (address strategy);
+    function strategyList(uint256 _index)
+        external
+        view
+        returns (address strategy);
 }
 
-    // function policies(address _miner, uint _id) external view returns(Policy memory);
+// function policies(address _miner, uint _id) external view returns(Policy memory);
 
-    // function claims(address _miner, uint _id) external view returns (Claim memory);
-
+// function claims(address _miner, uint _id) external view returns (Claim memory);

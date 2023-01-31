@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-pragma solidity 0.8.7;
+pragma solidity 0.8.17;
 
-import { INonTransparentProxy } from "./interfaces/INonTransparentProxy.sol";
+import {INonTransparentProxy} from "./interfaces/INonTransparentProxy.sol";
 
 contract NonTransparentProxy is INonTransparentProxy {
-
-    bytes32 private constant ADMIN_SLOT          = bytes32(uint256(keccak256("eip1967.proxy.admin"))          - 1);
-    bytes32 private constant IMPLEMENTATION_SLOT = bytes32(uint256(keccak256("eip1967.proxy.implementation")) - 1);
+    bytes32 private constant ADMIN_SLOT =
+        bytes32(uint256(keccak256("eip1967.proxy.admin")) - 1);
+    bytes32 private constant IMPLEMENTATION_SLOT =
+        bytes32(uint256(keccak256("eip1967.proxy.implementation")) - 1);
 
     constructor(address admin_, address implementation_) {
-        _setAddress(ADMIN_SLOT,          admin_);
+        _setAddress(ADMIN_SLOT, admin_);
         _setAddress(IMPLEMENTATION_SLOT, implementation_);
     }
 
@@ -17,7 +18,7 @@ contract NonTransparentProxy is INonTransparentProxy {
     /*** Admin Functions                                                                                                                ***/
     /**************************************************************************************************************************************/
 
-    function setImplementation(address newImplementation_) override external {
+    function setImplementation(address newImplementation_) external override {
         require(msg.sender == _admin(), "NTP:SI:NOT_ADMIN");
         _setAddress(IMPLEMENTATION_SLOT, newImplementation_);
     }
@@ -57,12 +58,22 @@ contract NonTransparentProxy is INonTransparentProxy {
     fallback() external {
         address implementation_ = _implementation();
 
-        require(implementation_.code.length != 0, "NTP:F:NO_CODE_ON_IMPLEMENTATION");
+        require(
+            implementation_.code.length != 0,
+            "NTP:F:NO_CODE_ON_IMPLEMENTATION"
+        );
 
         assembly {
             calldatacopy(0, 0, calldatasize())
 
-            let result := delegatecall(gas(), implementation_, 0, calldatasize(), 0, 0)
+            let result := delegatecall(
+                gas(),
+                implementation_,
+                0,
+                calldatasize(),
+                0,
+                0
+            )
 
             returndatacopy(0, 0, returndatasize())
 
@@ -75,5 +86,4 @@ contract NonTransparentProxy is INonTransparentProxy {
             }
         }
     }
-
 }

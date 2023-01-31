@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity 0.8.7;
+pragma solidity 0.8.17;
 
 import "./AR4626RouterBase.sol";
 
@@ -71,7 +71,9 @@ contract AR4626Router is IAR4626Router, AR4626RouterBase {
     ) public payable override returns (uint256 amountOut) {
         uint256 shareBalance = vault.balanceOf(msg.sender);
         uint256 maxRedeem = vault.maxRedeem(msg.sender);
-        uint256 amountShares = maxRedeem < shareBalance ? maxRedeem : shareBalance;
+        uint256 amountShares = maxRedeem < shareBalance
+            ? maxRedeem
+            : shareBalance;
         return redeem(vault, to, amountShares, minAmountOut);
     }
 }

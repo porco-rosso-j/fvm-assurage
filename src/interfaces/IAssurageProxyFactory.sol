@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity 0.8.7;
+pragma solidity 0.8.17;
 
-import { IDefaultImplementationBeacon } from "../proxy/1967Proxy/interfaces/IDefaultImplementationBeacon.sol";
+import {IDefaultImplementationBeacon} from "../proxy/1967Proxy/interfaces/IDefaultImplementationBeacon.sol";
 
 /// @title A Assurage factory for Proxy contracts that proxy AssurageProxied implementations.
 interface IAssurageProxyFactory is IDefaultImplementationBeacon {
-
     /**************************************************************************************************************************************/
     /*** Events                                                                                                                         ***/
     /**************************************************************************************************************************************/
@@ -22,7 +21,11 @@ interface IAssurageProxyFactory is IDefaultImplementationBeacon {
      *  @param implementationAddress_ The address of the implementation.
      *  @param initializer_           The address of the initializer, if any.
      */
-    event ImplementationRegistered(uint256 indexed version_, address indexed implementationAddress_, address indexed initializer_);
+    event ImplementationRegistered(
+        uint256 indexed version_,
+        address indexed implementationAddress_,
+        address indexed initializer_
+    );
 
     /**
      *  @dev   A proxy contract was deployed with some initialization arguments.
@@ -30,7 +33,11 @@ interface IAssurageProxyFactory is IDefaultImplementationBeacon {
      *  @param instance_                The address of the proxy contract deployed.
      *  @param initializationArguments_ The arguments used to initialize the proxy contract, if any.
      */
-    event InstanceDeployed(uint256 indexed version_, address indexed instance_, bytes initializationArguments_);
+    event InstanceDeployed(
+        uint256 indexed version_,
+        address indexed instance_,
+        bytes initializationArguments_
+    );
 
     /**
      *  @dev   A instance has upgraded by proxying to a new implementation, with some migration arguments.
@@ -39,7 +46,12 @@ interface IAssurageProxyFactory is IDefaultImplementationBeacon {
      *  @param toVersion_          The new implementation version being proxied.
      *  @param migrationArguments_ The arguments used to migrate, if any.
      */
-    event InstanceUpgraded(address indexed instance_, uint256 indexed fromVersion_, uint256 indexed toVersion_, bytes migrationArguments_);
+    event InstanceUpgraded(
+        address indexed instance_,
+        uint256 indexed fromVersion_,
+        uint256 indexed toVersion_,
+        bytes migrationArguments_
+    );
 
     /**
      *  @dev   The AssurageGlobal was set.
@@ -52,7 +64,10 @@ interface IAssurageProxyFactory is IDefaultImplementationBeacon {
      *  @param fromVersion_ The starting version of the upgrade path.
      *  @param toVersion_   The destination version of the upgrade path.
      */
-    event UpgradePathDisabled(uint256 indexed fromVersion_, uint256 indexed toVersion_);
+    event UpgradePathDisabled(
+        uint256 indexed fromVersion_,
+        uint256 indexed toVersion_
+    );
 
     /**
      *  @dev   An upgrade path was enabled, with an optional migrator contract.
@@ -60,7 +75,11 @@ interface IAssurageProxyFactory is IDefaultImplementationBeacon {
      *  @param toVersion_   The destination version of the upgrade path.
      *  @param migrator_    The address of the migrator, if any.
      */
-    event UpgradePathEnabled(uint256 indexed fromVersion_, uint256 indexed toVersion_, address indexed migrator_);
+    event UpgradePathEnabled(
+        uint256 indexed fromVersion_,
+        uint256 indexed toVersion_,
+        address indexed migrator_
+    );
 
     /**************************************************************************************************************************************/
     /*** State Variables                                                                                                                ***/
@@ -82,7 +101,10 @@ interface IAssurageProxyFactory is IDefaultImplementationBeacon {
      *  @param  fromVersion_ The destination version.
      *  @return allowed_     Whether the upgrade is enabled.
      */
-    function upgradeEnabledForPath(uint256 toVersion_, uint256 fromVersion_) external view returns (bool allowed_);
+    function upgradeEnabledForPath(uint256 toVersion_, uint256 fromVersion_)
+        external
+        view
+        returns (bool allowed_);
 
     /**************************************************************************************************************************************/
     /*** State Changing Functions                                                                                                       ***/
@@ -95,7 +117,9 @@ interface IAssurageProxyFactory is IDefaultImplementationBeacon {
      *  @param  salt_      The salt to use in the contract creation process.
      *  @return instance_  The address of the deployed proxy contract.
      */
-    function createInstance(bytes calldata arguments_, bytes32 salt_) external returns (address instance_);
+    function createInstance(bytes calldata arguments_, bytes32 salt_)
+        external
+        returns (address instance_);
 
     /**
      *  @dev   Enables upgrading from a version to a version of an implementation, with an optional migrator.
@@ -104,7 +128,11 @@ interface IAssurageProxyFactory is IDefaultImplementationBeacon {
      *  @param toVersion_   The destination version of the upgrade path.
      *  @param migrator_    The address of the migrator, if any.
      */
-    function enableUpgradePath(uint256 fromVersion_, uint256 toVersion_, address migrator_) external;
+    function enableUpgradePath(
+        uint256 fromVersion_,
+        uint256 toVersion_,
+        address migrator_
+    ) external;
 
     /**
      *  @dev   Disables upgrading from a version to a version of a implementation.
@@ -112,7 +140,8 @@ interface IAssurageProxyFactory is IDefaultImplementationBeacon {
      *  @param fromVersion_ The starting version of the upgrade path.
      *  @param toVersion_   The destination version of the upgrade path.
      */
-    function disableUpgradePath(uint256 fromVersion_, uint256 toVersion_) external;
+    function disableUpgradePath(uint256 fromVersion_, uint256 toVersion_)
+        external;
 
     /**
      *  @dev   Registers the address of an implementation contract as a version, with an optional initializer.
@@ -121,7 +150,11 @@ interface IAssurageProxyFactory is IDefaultImplementationBeacon {
      *  @param implementationAddress_ The address of the implementation.
      *  @param initializer_           The address of the initializer, if any.
      */
-    function registerImplementation(uint256 version_, address implementationAddress_, address initializer_) external;
+    function registerImplementation(
+        uint256 version_,
+        address implementationAddress_,
+        address initializer_
+    ) external;
 
     /**
      *  @dev   Sets the default version.
@@ -142,7 +175,8 @@ interface IAssurageProxyFactory is IDefaultImplementationBeacon {
      *  @param toVersion_ The implementation version to upgrade the proxy contract to.
      *  @param arguments_ The migration arguments, if any.
      */
-    function upgradeInstance(uint256 toVersion_, bytes calldata arguments_) external;
+    function upgradeInstance(uint256 toVersion_, bytes calldata arguments_)
+        external;
 
     /**************************************************************************************************************************************/
     /*** View Functions                                                                                                                 ***/
@@ -154,21 +188,30 @@ interface IAssurageProxyFactory is IDefaultImplementationBeacon {
      *  @param  salt_            The salt to be used when deploying the proxy.
      *  @return instanceAddress_ The deterministic address of a potential proxy.
      */
-    function getInstanceAddress(bytes calldata arguments_, bytes32 salt_) external view returns (address instanceAddress_);
+    function getInstanceAddress(bytes calldata arguments_, bytes32 salt_)
+        external
+        view
+        returns (address instanceAddress_);
 
     /**
      *  @dev    Returns the address of an implementation version.
      *  @param  version_        The implementation version.
      *  @return implementation_ The address of the implementation.
      */
-    function implementationOf(uint256 version_) external view returns (address implementation_);
+    function implementationOf(uint256 version_)
+        external
+        view
+        returns (address implementation_);
 
     /**
      *  @dev    Returns if a given address has been deployed by this factory/
      *  @param  instance_   The address to check.
      *  @return isInstance_ A boolean indication if the address has been deployed by this factory.
      */
-    function isInstance(address instance_) external view returns (bool isInstance_);
+    function isInstance(address instance_)
+        external
+        view
+        returns (bool isInstance_);
 
     /**
      *  @dev    Returns the address of a migrator contract for a migration path (from version, to version).
@@ -177,13 +220,18 @@ interface IAssurageProxyFactory is IDefaultImplementationBeacon {
      *  @param  newVersion_ The new version.
      *  @return migrator_   The address of a migrator contract.
      */
-    function migratorForPath(uint256 oldVersion_, uint256 newVersion_) external view returns (address migrator_);
+    function migratorForPath(uint256 oldVersion_, uint256 newVersion_)
+        external
+        view
+        returns (address migrator_);
 
     /**
      *  @dev    Returns the version of an implementation contract.
      *  @param  implementation_ The address of an implementation contract.
      *  @return version_        The version of the implementation contract.
      */
-    function versionOf(address implementation_) external view returns (uint256 version_);
-
+    function versionOf(address implementation_)
+        external
+        view
+        returns (uint256 version_);
 }

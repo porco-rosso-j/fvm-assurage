@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-pragma solidity 0.8.7;
+pragma solidity 0.8.17;
 
 interface INonTransparentProxied {
-
     /**
      *  @dev    Returns the proxy's admin address.
      *  @return admin_ The address of the admin.
@@ -14,5 +13,4 @@ interface INonTransparentProxied {
      *  @return implementation_ The address of the implementation.
      */
     function implementation() external view returns (address implementation_);
-
 }

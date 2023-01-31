@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity 0.8.7;
+pragma solidity 0.8.17;
 
-import { IProxied } from "../proxy/1967Proxy/interfaces/IProxied.sol";
+import {IProxied} from "../proxy/1967Proxy/interfaces/IProxied.sol";
 
 /// @title A Assurage implementation that is to be proxied, must implement IAssurageProxied.
 interface IAssurageProxied is IProxied {
-
     /**s
      *  @dev   The instance was upgraded.
      *  @param toVersion_ The new version of the loan.
@@ -20,5 +19,4 @@ interface IAssurageProxied is IProxied {
      *  @param arguments_ Some encoded arguments to use for the upgrade.
      */
     function upgrade(uint256 toVersion_, bytes calldata arguments_) external;
-
 }

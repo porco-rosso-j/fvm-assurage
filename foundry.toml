@@ -23,10 +23,9 @@ libs = ["lib"]
 optimizer = true
 optimizer_runs = 10_000
 out = "out"
-solc = "0.8.7"
+solc = "0.8.17"
 src = "src"
 test = "test"
-include_paths = ["./src/core/"]
 
 [profile.ci]
 fuzz = { runs = 10_000 }

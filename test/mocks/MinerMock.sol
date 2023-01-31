@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity 0.8.7;
+pragma solidity 0.8.17;
 
 import "filecoin-solidity/types/MinerTypes.sol";
 import {IMinerActor} from "src/interfaces/IMinerActor.sol";

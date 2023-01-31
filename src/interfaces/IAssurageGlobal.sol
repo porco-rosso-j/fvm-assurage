@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity 0.8.7;
+pragma solidity 0.8.17;
 
-import { INonTransparentProxied } from "../core/NonTransparentProxied.sol";
+import {INonTransparentProxied} from "../core/NonTransparentProxied.sol";
 
 interface IAssurageGlobal is INonTransparentProxied {
-
     /**************************************************************************************************************************************/
     /*** Events                                                                                                                         ***/
     /**************************************************************************************************************************************/
@@ -14,7 +13,10 @@ interface IAssurageGlobal is INonTransparentProxied {
      *  @param previousMigrationAdmin The previous migration admin.
      *  @param nextMigrationAdmin     The new migration admin.
      */
-    event MigrationAdminSet(address indexed previousMigrationAdmin, address indexed nextMigrationAdmin);
+    event MigrationAdminSet(
+        address indexed previousMigrationAdmin,
+        address indexed nextMigrationAdmin
+    );
 
     /**
      *  @dev   A virtualized first mint that acts as as offset to `totalAssets` and `totalSupply`.
@@ -28,14 +30,20 @@ interface IAssurageGlobal is INonTransparentProxied {
      *  @param assurageManager               The address of the Assurage Manager.
      *  @param platformManagementFeeRate The new value for the platform management fee rate.
      */
-    event PlatformManagementFeeRateSet(address indexed assurageManager, uint256 platformManagementFeeRate);
+    event PlatformManagementFeeRateSet(
+        address indexed assurageManager,
+        uint256 platformManagementFeeRate
+    );
 
     /**
      *  @dev   The Assurage Manager was activated.
      *  @param assurageManager  The address of the Assurage Manager.
      *  @param vaultDelegate The address of the Vault delegate.
      */
-    event AssurageManagerActivated(address indexed assurageManager, address indexed vaultDelegate);
+    event AssurageManagerActivated(
+        address indexed assurageManager,
+        address indexed vaultDelegate
+    );
 
     /**
      *  @dev   A valid borrower was set.
@@ -50,7 +58,11 @@ interface IAssurageGlobal is INonTransparentProxied {
      *  @param factory    The address of the factory.
      *  @param isValid    The validity of the factory.
      */
-    event ValidFactorySet(bytes32 indexed factoryKey, address indexed factory, bool indexed isValid);
+    event ValidFactorySet(
+        bytes32 indexed factoryKey,
+        address indexed factory,
+        bool indexed isValid
+    );
 
     /**
      *  @dev   A valid asset was set.
@@ -64,14 +76,22 @@ interface IAssurageGlobal is INonTransparentProxied {
      *  @param account The address the account.
      *  @param isValid The validity of the asset.
      */
-    event ValidAssurageDelegateSet(address indexed account, bool indexed isValid);
+    event ValidAssurageDelegateSet(
+        address indexed account,
+        bool indexed isValid
+    );
 
     /**
      *  @dev   A valid Vault deployer was set.
      *  @param vaultDeployer The address the account.
      *  @param isValid      The validity of the asset.
      */
-    event ValidVaultDeployerSet(address indexed vaultDeployer, bool indexed isValid);
+    event ValidVaultDeployerSet(
+        address indexed vaultDeployer,
+        bool indexed isValid
+    );
+
+    event ValidStrategySet(address indexed strategy, bool indexed isValid);
 
     /**************************************************************************************************************************************/
     /*** State Variables                                                                                                                ***/
@@ -90,31 +110,48 @@ interface IAssurageGlobal is INonTransparentProxied {
      *  @param  factory   The address of the factory to query.
      *  @return isValid   A boolean indicating the validity of the factory.
      */
-    function isFactory(bytes32 factoryId, address factory) external view returns (bool isValid);
+    function isFactory(bytes32 factoryId, address factory)
+        external
+        view
+        returns (bool isValid);
 
     /**
      *  @dev    Gets the validity of a Vault asset.
      *  @param  vaultAsset The address of the VaultAsset to query.
      *  @return isValid   A boolean indicating the validity of the Vault asset.
      */
-    function isVaultAsset(address vaultAsset) external view returns (bool isValid);
+    function isVaultAsset(address vaultAsset)
+        external
+        view
+        returns (bool isValid);
 
     /**
      *  @dev    Gets the validity of a Vault delegate.
      *  @param  account  The address of the account to query.
      *  @return isValid  A boolean indicating the validity of the Vault delegate.
      */
-    function isAssurageDelegate(address account) external view returns (bool isValid);
+    function isAssurageDelegate(address account)
+        external
+        view
+        returns (bool isValid);
 
-    
-    function assurageManager(address account) external view returns (address assurageManager);
+    function isStrategy(address strategy) external view returns (bool isValid);
+
+    function assurageManager(address account)
+        external
+        view
+        returns (address assurageManager);
 
     /**
      *  @dev    Gets the validity of a Vault deployer.
      *  @param  account  The address of the account to query.
      *  @return isValid  A boolean indicating the validity of the Vault deployer.
      */
-    function isVaultDeployer(address account) external view returns (bool isValid);
+    function isVaultDeployer(address account)
+        external
+        view
+        returns (bool isValid);
+
     /**
      *  @dev    Gets governor address.
      *  @return governor The address of the governor.
@@ -132,14 +169,20 @@ interface IAssurageGlobal is INonTransparentProxied {
      *  @param  asset         The address of the Vault asset to query
      *  @return bootstrapMint The amount of shares that will offset `totalAssets` and `totalSupply`.
      */
-    function bootstrapMint(address asset) external view returns (uint256 bootstrapMint);
+    function bootstrapMint(address asset)
+        external
+        view
+        returns (uint256 bootstrapMint);
 
     /**
      *  @dev    Gets the platform management fee rate for a given Assurage Manager.
      *  @param  assurageManager               The address of the Assurage Manager to query.
      *  @return platformManagementFeeRate The platform management fee rate.
      */
-    function platformManagementFeeRate(address assurageManager) external view returns (uint256 platformManagementFeeRate);
+    function platformManagementFeeRate(address assurageManager)
+        external
+        view
+        returns (uint256 platformManagementFeeRate);
 
     /**
      *  @dev    Gets Vault delegate address information.
@@ -147,7 +190,10 @@ interface IAssurageGlobal is INonTransparentProxied {
      *  @return assurageManager The address of the Assurage Manager owned by the Vault delegate.
      *  @return isAssurageDelegate   A boolean indication weather or not the address passed is a current Vault delegate.
      */
-    function assurageDelegates(address vaultDelegate) external view returns (address assurageManager, bool isAssurageDelegate);
+    function assurageDelegates(address vaultDelegate)
+        external
+        view
+        returns (address assurageManager, bool isAssurageDelegate);
 
     /**************************************************************************************************************************************/
     /*** Global Setters                                                                                                                 ***/
@@ -190,7 +236,11 @@ interface IAssurageGlobal is INonTransparentProxied {
      *  @param factory    The address of the factory to set the validity for.
      *  @param isValid    Boolean indicating the validity of the factory.
      */
-    function setValidFactory(bytes32 factoryKey, address factory, bool isValid) external;
+    function setValidFactory(
+        bytes32 factoryKey,
+        address factory,
+        bool isValid
+    ) external;
 
     /**
      *  @dev   Sets the validity of the Vault asset.
@@ -204,14 +254,18 @@ interface IAssurageGlobal is INonTransparentProxied {
      *  @param vaultDelegate The address of the Vault delegate to set the validity for.
      *  @param isValid      A boolean indicating the validity of the Vault delegate.
      */
-    function setValidAssurageDelegate(address vaultDelegate, bool isValid) external;
+    function setValidAssurageDelegate(address vaultDelegate, bool isValid)
+        external;
 
     /**
      *  @dev   Sets the validity of the Vault deployer.
      *  @param vaultDeployer The address of the Vault deployer to set the validity for.
      *  @param isValid      A boolean indicating the validity of the Vault deployer.
      */
-    function setValidVaultDeployer(address vaultDeployer, bool isValid) external;
+    function setValidVaultDeployer(address vaultDeployer, bool isValid)
+        external;
+
+    function setValidStrategy(address strategy, bool isValid) external;
 
     /**************************************************************************************************************************************/
     /*** Fee Setters                                                                                                                    ***/
@@ -222,7 +276,8 @@ interface IAssurageGlobal is INonTransparentProxied {
      *  @param assurageManager               The address of the Assurage Manager to set the fee for.
      *  @param platformManagementFeeRate The platform management fee rate.
      */
-    function setPlatformManagementFeeRate(address assurageManager, uint256 platformManagementFeeRate) external;
-
-
+    function setPlatformManagementFeeRate(
+        address assurageManager,
+        uint256 platformManagementFeeRate
+    ) external;
 }
