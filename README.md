@@ -52,7 +52,7 @@ The whole smart contract architecture and ERC4626-centric implementation are inh
 - [Fei Protocol/ERC4626](https://github.com/fei-protocol/ERC4626)
 - [Yearn ERC4626 Router](https://github.com/Schlagonia/Yearn-ERC4626-Router)
 
-As one of the most immportant modules, Zondax's Solidity API helps Assurage seemlessly interact with Miner Actors on FEVM. `MinerActor.sol` that integrates its API allows Assurage to fetch the data of a Miner to validate their available balance and if `beneficiary` address is correctly set to `AssurageManager.sol` before miners pay premium.
+As one of the most immportant modules, Zondax's Solidity API helps Assurage seemlessly interact with Miner Actor on FEVM. `filecoin-api/AssurageMinerAPI.sol` that integrates its API allows Assurage to fetch the data of Miners to validate their available balance and if `beneficiary` address is correctly set to `AssurageManager.sol` before miners pay premium.
 
 - [Zondax Filecoin Solidity API](https://github.com/Zondax/filecoin-solidity)
 
