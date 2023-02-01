@@ -8,3 +8,7 @@
 	path = lib/filecoin-solidity
 	url = https://github.com/Zondax/filecoin-solidity
 	ignore = dirty
+[submodule "lib/forge-std"]
+	path = lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+	branch = v1.3.0
