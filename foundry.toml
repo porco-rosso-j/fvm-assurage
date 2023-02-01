@@ -1,9 +1,5 @@
 # Full reference https://github.com/foundry-rs/foundry/tree/master/config
 
-[etherscan]
-ethereum = { key = "${ETHERSCAN_API_KEY}" }
-goerli = { key = "${ETHERSCAN_API_KEY}" }
-
 [fmt]
 bracket_spacing = true
 int_types = "long"
@@ -34,4 +30,4 @@ verbosity = 4
 [rpc_endpoints]
 ethereum="https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
 localhost="http://localhost:8545"
-goerli="https://goerli.infura.io/v3/${INFURA_API_KEY}"
+goerli="https://goerli.infura.io/v3/${ALCHEMY_API_KEY_GOERLI}"

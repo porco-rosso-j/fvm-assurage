@@ -88,7 +88,7 @@ contract AssurageManager is
     }
 
     // ---------------------------------- //
-    // Protection Vault Operations
+    // Config Operations
     // ---------------------------------- //
 
     function setActive(bool _active) external override {
