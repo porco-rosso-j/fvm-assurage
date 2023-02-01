@@ -2,13 +2,19 @@
 pragma solidity 0.8.17;
 
 interface IStrategy {
-    //  function setManager(address _assurageManager) external;
+    function isValidManager(address) external returns (bool);
+
+    function share() external returns (address);
+
+    function setValidManager(address _assurageManager) external;
+
+    function approveManager() external;
 
     function deposit(uint256 _amount) external;
 
-    function withdraw(uint256 _amount) external returns (uint256 FILAmount);
+    function withdraw(uint256 _amount) external returns (uint256 filAmount);
 
-    function getAUM() external view returns (uint256);
+    function getBalance(uint256 _amount) external view returns (uint256);
 }
 
 interface ILidoStrategy is IStrategy {

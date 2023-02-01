@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity 0.8.17;
 
-import {IWFIL, IERC20} from "../interfaces/IWFIL.sol";
+import {IWFIL} from "../interfaces/IWFIL.sol";
 import {IAssurageProxyFactory} from "../interfaces/IAssurageProxyFactory.sol";
 import {IAssurageGlobal} from "../interfaces/IAssurageGlobal.sol";
 import {IStrategy} from "../interfaces/IStrategy.sol";
@@ -11,12 +11,14 @@ import {IAssurageManager} from "../interfaces/IAssurageManager.sol";
 import {ProxiedInternals} from "../proxy/1967Proxy/ProxiedInternals.sol";
 import {AssurageManagerStorage} from "../proxy/AssurageManagerStorage.sol";
 
-import {AssurageMinerAPI} from "../filecoin-api/AssurageMinerAPI.sol";
+import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
+import {MinerAPIHepler} from "../filecoin-api/MinerAPIHepler.sol";
 
 contract AssurageManager is
     IAssurageManager,
     ProxiedInternals,
-    AssurageManagerStorage
+    AssurageManagerStorage,
+    MinerAPIHepler
 {
     uint256 public constant HUNDRED_PERCENT = 100_0000;
 
@@ -178,15 +180,10 @@ contract AssurageManager is
         uint256 _period
     ) internal view returns (bool) {
         require(_minerId.length != 0, "Invalid MinerID");
-
-        bytes memory minerBeneficiary = AssurageMinerAPI.getBeneficiary(
-            _minerId
-        );
         require(
-            keccak256(beneficiaryBytesAddr) == keccak256(minerBeneficiary),
+            _validateBeneficiary(_miner, beneficiaryBytesAddr),
             "Invalid Beneficiary"
         );
-
         require(_amount >= minProtection, "Invalid Amount");
         require(_period >= minPeriod, "Invalid Period");
 
@@ -239,31 +236,21 @@ contract AssurageManager is
         bytes memory _minerId,
         uint256 _premium
     ) internal {
-        uint256 minerBalance = AssurageMinerAPI.getAvailableBalance(_minerId);
-        require(minerBalance >= _premium, "Insufficient Balance");
-
-        (
-            bytes memory minerBeneficiary,
-            uint256 quota,
-            uint256 expiry
-        ) = AssurageMinerAPI.getBeneficiaryInfo(_minerId);
+        require(
+            _validateAvailableBalance(_minerId, _miner),
+            "Insufficient Balance"
+        );
 
         require(
-            keccak256(beneficiaryBytesAddr) == keccak256(minerBeneficiary),
-            "Invalid beneficiary"
+            _validateBeneficiaryInfo(_miner, beneficiaryBytesAddr, _premium),
+            "Invalid Beneficiary"
         );
 
-        require(quota >= _premium, "Insufficient allowance");
-        require(expiry > block.timestamp, "Invalid expiration");
-
-        (
-            AssurageMinerAPI.withdrawBalance(_minerId, _premium) == premium,
-            "Withdrawal Failed"
-        );
+        require(_withdrawBalance(_minerId, _premium), "Withdrawal Failed");
 
         IWFIL(asset).deposit{value: _premium}();
 
-        require(IWFIL(asset).transfer(vault, _premium), "Transfer Failed");
+        SafeTransferLib.safeTransfer(ERC20(asset), vault, _premium);
     }
 
     // ---------------------------------- //
@@ -346,27 +333,27 @@ contract AssurageManager is
         return claim;
     }
 
-    function renewPolocy(address _miner, uint256 _id)
-        public
-        override
-        returns (Policy memory)
-    {
-        require(_miner == msg.sender, "Invalid caller");
+    // function renewPolocy(address _miner, uint256 _id)
+    //     public
+    //     override
+    //     returns (Policy memory)
+    // {
+    //     require(_miner == msg.sender, "Invalid caller");
 
-        Policy storage policy = policies[_miner][_id];
-        require(policy.expiry >= block.timestamp, "Policy has expired");
+    //     Policy storage policy = policies[_miner][_id];
+    //     require(policy.expiry >= block.timestamp, "Policy has expired");
 
-        uint256 premium = _quotePremium(
-            policy.amount,
-            policy.period,
-            policy.score
-        );
-        policy.premium = premium;
+    //     uint256 premium = _quotePremium(
+    //         policy.amount,
+    //         policy.period,
+    //         policy.score
+    //     );
+    //     policy.premium = premium;
 
-        policy.expiry = policy.expiry + policy.period;
+    //     policy.expiry = policy.expiry + policy.period;
 
-        return policies[_miner][_id];
-    }
+    //     return policies[_miner][_id];
+    // }
 
     // should be here applyForPolicyRenewal()
 
@@ -433,6 +420,7 @@ contract AssurageManager is
             "Unregistered Strategy"
         );
         strategyList.push(_strategy);
+        IStrategy(_strategy).approveManager();
     }
 
     function investInStrategy(uint256 _index, uint256 _amount)
@@ -441,7 +429,18 @@ contract AssurageManager is
         onlyDelegate
     {
         require(_index < strategyList.length, "Invalid Index");
-        IStrategy(strategyList[_index]).deposit(_amount);
+
+        address strategy = strategyList[_index];
+
+        // transfer wFIL from vault ot strategy
+        SafeTransferLib.safeTransferFrom(
+            ERC20(asset),
+            vault,
+            strategy,
+            _amount
+        );
+        // have strategy proceed deposit
+        IStrategy(strategy).deposit(_amount);
     }
 
     function withdrawFromStrategy(uint256 _index, uint256 _amount)
@@ -450,8 +449,31 @@ contract AssurageManager is
         onlyDelegate
     {
         require(_index < strategyList.length, "Invalid Index");
-        //require(IStrategy(strategyList[_index]).getAUM() != 0, "No Allo");
-        IStrategy(strategyList[_index]).withdraw(_amount);
+        require(
+            IWFIL(asset).balanceOf(vault) > _amount,
+            "Insufficient Balance"
+        );
+
+        address strategy = strategyList[_index];
+        require(IStrategy(strategy).getBalance(_amount) != 0, "No Balance");
+
+        // send share token to Strategy contract
+        SafeTransferLib.safeTransfer(
+            ERC20(IStrategy(strategy).share()),
+            strategy,
+            _amount
+        );
+
+        // have Strategy contract proceed withdrawal
+        uint256 withdrawn_amount = IStrategy(strategy).withdraw(_amount);
+
+        // send wFIL back to vault
+        SafeTransferLib.safeTransferFrom(
+            ERC20(wFIL),
+            strategy,
+            vault,
+            withdrawn_amount
+        );
     }
 
     // ---------------------------------- //
@@ -474,12 +496,15 @@ contract AssurageManager is
     }
 
     function totalAssets() public view override returns (uint256) {
-        uint256 totalAsset = IERC20(asset).balanceOf(vault);
+        uint256 totalAsset = IWFIL(asset).balanceOf(vault);
 
         uint256 length = strategyList.length;
-
+        uint256 balance;
         for (uint256 i = 0; i < length; ) {
-            totalAsset += IStrategy(strategyList[i]).getAUM();
+            balance = IWFIL(IStrategy(strategyList[i]).share()).balanceOf(
+                address(this)
+            );
+            totalAsset += IStrategy(strategyList[i]).getBalance(balance);
             unchecked {
                 ++i;
             }

@@ -7,7 +7,8 @@ import {CommonTypes} from "filecoin-solidity/contracts/v0.8/types/CommonTypes.so
 import {MinerAPI} from "filecoin-solidity/contracts/v0.8//MinerAPI.sol";
 import {BytesHelper} from "./BytesHelper.sol";
 
-library AssurageMinerAPI {
+// A contract that handles fetching and validating return values via MinerAPI
+contract MinerAPIHepler {
     using BytesHelper for bytes;
 
     function getOwner(bytes memory _miner) internal returns (bytes memory) {
@@ -17,30 +18,46 @@ library AssurageMinerAPI {
         return ownerReturn.owner;
     }
 
-    function getAvailableBalance(bytes memory _miner)
+    function _validateAvailableBalance(bytes memory _miner, uint256 _premium)
         internal
-        returns (uint256)
+        returns (bool)
     {
         MinerTypes.GetAvailableBalanceReturn memory availableBalance = MinerAPI
             .getAvailableBalance(_miner);
         BigInt memory balanceBigInt = availableBalance.available_balance;
         bytes memory balanceBytes = balanceBigInt.val;
 
-        return BytesHelper.bytesToUint(balanceBytes);
+        require(
+            BytesHelper.bytesToUint(balanceBytes) >= _premium,
+            "Insufficient Balance"
+        );
+
+        return true;
     }
 
-    function getBeneficiary(bytes memory _miner)
-        internal
-        returns (bytes memory)
-    {
+    function _validateBeneficiary(
+        bytes memory _miner,
+        bytes memory _beneficiaryBytesAddr
+    ) internal returns (bool) {
         MinerTypes.GetBeneficiaryReturn memory beneficiary = MinerAPI
             .getBeneficiary(_miner);
         CommonTypes.ActiveBeneficiary memory activeBeneficiary = beneficiary
             .active;
-        return activeBeneficiary.beneficiary;
+
+        require(
+            keccak256(_beneficiaryBytesAddr) ==
+                keccak256(activeBeneficiary.beneficiary),
+            "Invalid Beneficiary"
+        );
+
+        return true;
     }
 
-    function getBeneficiaryInfo(bytes memory _miner)
+    function _validateBeneficiaryInfo(
+        bytes memory _miner,
+        bytes memory _beneficiaryBytesAddr,
+        uint256 _premium
+    )
         internal
         returns (
             bytes memory,
@@ -53,6 +70,12 @@ library AssurageMinerAPI {
         CommonTypes.ActiveBeneficiary memory activeBeneficiary = beneficiary
             .active;
 
+        require(
+            keccak256(_beneficiaryBytesAddr) ==
+                keccak256(activeBeneficiary.beneficiary),
+            "Invalid Beneficiary"
+        );
+
         CommonTypes.BeneficiaryTerm memory term = activeBeneficiary.term;
         BigInt memory _quota = term.quota;
         BigInt memory _used_quota = term.used_quota;
@@ -62,21 +85,26 @@ library AssurageMinerAPI {
         uint256 used_quota = BytesHelper.bytesToUint(_used_quota.val);
         uint256 expiration = uint256(_expiration);
 
-        return (
-            activeBeneficiary.beneficiary,
-            (quota - used_quota),
-            expiration
-        );
+        require(quota - used_quota >= _premium, "Insufficient allowance");
+        require(expiration > block.timestamp, "Invalid expiration");
+
+        return true;
     }
 
-    function WithdrawBalance(bytes memory _miner, uint256 _amount)
+    function _withdrawBalance(bytes memory _miner, uint256 _amount)
         internal
-        returns (uint256)
+        returns (bool)
     {
         MinerTypes.WithdrawBalanceParams memory param;
         param.amount_requested = BytesHelper.toBytes(_amount);
         MinerTypes.WithdrawBalanceReturn memory result = MinerAPI
             .withdrawBalance(_miner, param);
-        return BytesHelper.bytesToUint(result.amount_withdrawn);
+
+        require(
+            BytesHelper.bytesToUint(result.amount_withdrawn) == _amount,
+            "Invalid return value"
+        );
+
+        return true;
     }
 }
