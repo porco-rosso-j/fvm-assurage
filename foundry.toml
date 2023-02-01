@@ -19,13 +19,13 @@ auto_detect_solc = false
 bytecode_hash = "none"
 fuzz = { runs = 1_000 }
 gas_reports = ["*"]
-libs = ["lib"]
 optimizer = true
 optimizer_runs = 10_000
-out = "out"
 solc = "0.8.17"
 src = "src"
 test = "test"
+libs = ["lib"]
+out = "out"
 
 [profile.ci]
 fuzz = { runs = 10_000 }

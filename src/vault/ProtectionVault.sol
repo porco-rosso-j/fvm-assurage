@@ -6,7 +6,7 @@ import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 import {IProtectionVault} from "../interfaces/IProtectionVault.sol";
 import {IAssurageManager} from "../interfaces/IAssurageManager.sol";
 import {IWFIL} from "../interfaces/IWFIL.sol";
-import {SendAPI} from "filecoin-solidity/SendAPI.sol";
+import {SendAPI} from "filecoin-solidity/contracts/v0.8/SendAPI.sol";
 
 contract ProtectionVault is IProtectionVault, ERC4626 {
     using SafeTransferLib for ERC20;
