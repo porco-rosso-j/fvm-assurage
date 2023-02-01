@@ -7,6 +7,8 @@ import {IAssurageGlobal} from "../interfaces/IAssurageGlobal.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 
 interface IWstFIL {
+    function stFIL() external view returns (IStFIL);
+
     function getStFILByWstFIL(uint256 _wstFILAmount)
         external
         view
@@ -28,7 +30,6 @@ contract LidoStorategy is ILidoStrategy {
     address public global;
 
     address public override wstFIL;
-    address public override stFIL;
     address public override wFIL;
 
     mapping(address => bool) public isValidManager;
@@ -36,12 +37,10 @@ contract LidoStorategy is ILidoStrategy {
     constructor(
         address _global,
         address _wstFIL,
-        address _stFIL,
         address _wFIL
     ) {
         global = _global;
         wstFIL = _wstFIL;
-        stFIL = _stFIL;
         wFIL = _wFIL;
     }
 
@@ -93,6 +92,8 @@ contract LidoStorategy is ILidoStrategy {
         SafeTransferLib.safeApprove(ERC20(wstFIL), wstFIL, _amount);
         uint256 stFILAmount = IWstFIL(wstFIL).unwrap(_amount);
 
+        address stFIL = address(IWstFIL(wstFIL).stETH());
+
         SafeTransferLib.safeApprove(ERC20(stFIL), stFIL, stFILAmount);
         filAmount = IStFIL(stFIL).unstake(stFILAmount);
 
@@ -107,6 +108,7 @@ contract LidoStorategy is ILidoStrategy {
         returns (uint256)
     {
         uint256 stFILAmount = IWstFIL(wstFIL).getStFILByWstFIL(_amount);
+        address stFIL = address(IWstFIL(wstFIL).stETH());
         return IStFIL(stFIL).getPooledFILByShares(stFILAmount);
     }
 

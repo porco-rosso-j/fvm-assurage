@@ -5,6 +5,7 @@ import {BigInt} from "filecoin-solidity/contracts/v0.8/cbor/BigIntCbor.sol";
 import {MinerTypes} from "filecoin-solidity/contracts/v0.8/types/MinerTypes.sol";
 import {CommonTypes} from "filecoin-solidity/contracts/v0.8/types/CommonTypes.sol";
 import {MinerAPI} from "filecoin-solidity/contracts/v0.8//MinerAPI.sol";
+import {PrecompilesAPI} from "filecoin-solidity/contracts/v0.8//PrecompilesAPI.sol";
 import {BytesHelper} from "./BytesHelper.sol";
 
 // A contract that handles fetching and validating return values via MinerAPI
