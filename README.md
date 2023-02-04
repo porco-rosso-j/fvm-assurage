@@ -12,9 +12,7 @@ Assurage is an insurance app built on top of Filecoin EVM, which helps Storage P
 
 - [Filecoin EVM](https://docs.filecoin.io/developers/smart-contracts/concepts/filecoin-evm/)
 
-##  Insurance for Sector Fault
-
-#### Sector and  Sector Fault
+## Sector and  Sector Fault 
 
 Sectors are the basic, standardized units of storage on Filecoin and the sector fault fee is the penalty for SPs not maintaining their operational requirements. Besides malicious activites and operational mistakes, faults could occur when infrastructure issues and natural disasters harm their operations and hardware. This is paid per sector per day while the sector is in a faulty state but not paid the first day the system detects the fault allowing a one day grace period for recovery without fee.
 
@@ -24,9 +22,13 @@ The size of the sector fault fee is slightly more than the amount the sector is 
 - [Sector](https://spec.filecoin.io/#section-systems.filecoin_mining.sector)
 - [Sector Fault](https://spec.filecoin.io/#section-systems.filecoin_mining.sector.sector-faults)
 
-#### Assurage's Insurance for Sector Fault
+## Assurage's Insurance for Sector Fault
 
-Fault insurance that Assurage provides is the financial protection for SPs who agree insurance contracts and are unwillingly slashed for being faulty on the network. The cover is compensated from the capital supplied by insurers, those who deposit funds to Assurage's Protection vault. The premium cost varies for each individual miner and its sector. It is determined by the cover amount and period it wants to be protected from slashing, as well as the miner and the covered sector's reliability and historical performance.
+Fault insurance that Assurage provides is the financial protection for SPs who agree insurance contracts and are unwillingly slashed for being faulty on the network. The cover is compensated from the capital supplied by insurers, those who deposit funds to Assurage's Protection vault. The premium cost varies for each individual miner and its sector. It is determined based on various factors: the cover amount and period it wants to be protected from slashing, as well as the miner and the covered sector's reliability and historical performance.
+
+Assurage's insurance scheme is not processed entirely on-chain but needs an intermediary called Assurage Delegate (see below), since at this stage where there is no oracle that provides FVM data with contracts on FEVM in a trustless manner, it seems technically infeasible to fetch and store all data on SPs on-chain, e.g. the basic SP's information and past performance for reviewing their applications for protection and the occurrence of fault events to conduct claim assessments and decide to proceed payment. 
+
+Hence, there needs to be centralized actors that assess the information and proceed the vital procedures off-chain. That said, Assurage Delegates are well-incentivized to carry out honest and fair works. This is because it isn't that a single entity takes responsibility for all the insurance deals but they have to show integrity to compete with other delegates. Also, they can delegate their assessing work to another trusted entity called Assessor, which can be a multi-sig controlled address, controlled by a group of people consisted of well-known experts.
 
 ## Protocol Overview
 
