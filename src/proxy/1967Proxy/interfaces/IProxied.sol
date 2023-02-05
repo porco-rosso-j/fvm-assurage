@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.7;
+pragma solidity 0.8.17;
 
 /// @title An implementation that is to be proxied, must implement IProxied.
 interface IProxied {
-
     /**
      *  @dev The address of the proxy factory.
      */
@@ -27,5 +26,4 @@ interface IProxied {
      *  @param arguments_ Some encoded arguments to use for the migration.
      */
     function migrate(address migrator_, bytes calldata arguments_) external;
-
 }

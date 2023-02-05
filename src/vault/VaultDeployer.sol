@@ -25,7 +25,7 @@ contract VaultDeployer is IVaultDeployer {
         address asset,
         string memory name,
         string memory symbol,
-        uint256[5] memory configParams // _minProtection, _liquidityCap, _delegateManagementFeeRate, _initialSupply
+        uint256[5] memory configParams // _minProtection, _minPeriod, _liquidityCap, _delegateManagementFeeRate, _initialSupply,
     ) external override returns (address assurageManager) {
         address assurageDelegate = msg.sender;
 
@@ -78,9 +78,10 @@ contract VaultDeployer is IVaultDeployer {
         IAssurageManager(assurageManager).configure(
             configParams[0],
             configParams[1],
-            configParams[2]
+            configParams[2],
+            configParams[3]
         );
 
-        SafeTransferLib.safeTransfer(ERC20(asset), vault, configParams[3]);
+        SafeTransferLib.safeTransfer(ERC20(asset), vault, configParams[4]);
     }
 }

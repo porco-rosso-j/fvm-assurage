@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import {IWFIL, IERC20} from "../interfaces/IWFIL.sol";
 import {ILidoStrategy} from "../interfaces/IStrategy.sol";
 import {IAssurageGlobal} from "../interfaces/IAssurageGlobal.sol";
-import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
+import {SafeTransferLib, ERC20} from "solmate/utils/SafeTransferLib.sol";
 
 interface IWstFIL {
     function stFIL() external view returns (IStFIL);
@@ -92,7 +92,7 @@ contract LidoStorategy is ILidoStrategy {
         SafeTransferLib.safeApprove(ERC20(wstFIL), wstFIL, _amount);
         uint256 stFILAmount = IWstFIL(wstFIL).unwrap(_amount);
 
-        address stFIL = address(IWstFIL(wstFIL).stETH());
+        address stFIL = address(IWstFIL(wstFIL).stFIL());
 
         SafeTransferLib.safeApprove(ERC20(stFIL), stFIL, stFILAmount);
         filAmount = IStFIL(stFIL).unstake(stFILAmount);
@@ -108,7 +108,7 @@ contract LidoStorategy is ILidoStrategy {
         returns (uint256)
     {
         uint256 stFILAmount = IWstFIL(wstFIL).getStFILByWstFIL(_amount);
-        address stFIL = address(IWstFIL(wstFIL).stETH());
+        address stFIL = address(IWstFIL(wstFIL).stFIL());
         return IStFIL(stFIL).getPooledFILByShares(stFILAmount);
     }
 

@@ -2,9 +2,9 @@
 pragma solidity 0.8.17;
 
 interface IStrategy {
-    function isValidManager(address) external returns (bool);
+    function isValidManager(address) external view returns (bool);
 
-    function share() external returns (address);
+    function share() external view returns (address);
 
     function setValidManager(address _assurageManager) external;
 
@@ -19,8 +19,6 @@ interface IStrategy {
 
 interface ILidoStrategy is IStrategy {
     function wstFIL() external view returns (address);
-
-    function stFIL() external view returns (address);
 
     function wFIL() external view returns (address);
 }

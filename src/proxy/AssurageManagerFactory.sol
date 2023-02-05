@@ -5,7 +5,7 @@ import {IAssurageProxyFactory, AssurageProxyFactory} from "./AssurageProxyFactor
 import {IAssurageGlobal} from "../interfaces/IAssurageGlobal.sol";
 
 contract AssurageManagerFactory is IAssurageProxyFactory, AssurageProxyFactory {
-    constructor(address globals) AssurageProxyFactory(globals) {}
+    constructor(address global) AssurageProxyFactory(global) {}
 
     function createInstance(bytes calldata arguments, bytes32 salt)
         public

@@ -18,7 +18,7 @@ interface IERC20 {
 }
 
 interface IWFIL is IERC20 {
-    function withdraw(uint256) external;
+    function withdraw(uint256) external payable;
 
     function deposit() external payable;
 }

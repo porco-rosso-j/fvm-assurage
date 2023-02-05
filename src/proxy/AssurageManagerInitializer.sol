@@ -62,7 +62,7 @@ contract AssurageManagerInitializer is
 
     function initialize(
         address _assurageDelegate,
-        address asset,
+        address _asset,
         uint256 initialSupply,
         string memory name,
         string memory symbol
@@ -73,7 +73,7 @@ contract AssurageManagerInitializer is
             (assurageDelegate = _assurageDelegate) != address(0),
             "PMI:I:ZEROPD"
         );
-        require((asset = asset) != address(0), "PMI:I:ZEROASSET");
+        require((asset = _asset) != address(0), "PMI:I:ZEROASSET");
 
         require(
             IAssurageGlobal(global).isAssurageDelegate(_assurageDelegate),
@@ -85,7 +85,7 @@ contract AssurageManagerInitializer is
             "PMI:I:POOLOWNER"
         );
         require(
-            IAssurageGlobal(global).isVaultAsset(asset),
+            IAssurageGlobal(global).isVaultAsset(_asset),
             "PMI:I:ASSETNOTALLOWED"
         );
 
@@ -99,15 +99,16 @@ contract AssurageManagerInitializer is
         vault = address(
             new ProtectionVault(
                 address(this),
-                asset,
+                _asset,
                 migrationAdmin,
-                IAssurageGlobal(global).bootstrapMint(asset),
+                IAssurageGlobal(global).bootstrapMint(_asset),
                 initialSupply,
                 name,
-                symbol
+                symbol,
+                18
             )
         );
 
-        emit Initialized(assurageDelegate, asset, address(vault));
+        emit Initialized(assurageDelegate, _asset, vault);
     }
 }

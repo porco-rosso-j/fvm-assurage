@@ -46,13 +46,6 @@ interface IAssurageGlobal is INonTransparentProxied {
     );
 
     /**
-     *  @dev   A valid borrower was set.
-     *  @param miner The address of the borrower.
-     *  @param isValid  The validity of the borrower.
-     */
-    event ValidMinerSet(address indexed miner, bool indexed isValid);
-
-    /**
      *  @dev   A valid factory was set.
      *  @param factoryKey The key of the factory.
      *  @param factory    The address of the factory.
@@ -96,13 +89,6 @@ interface IAssurageGlobal is INonTransparentProxied {
     /**************************************************************************************************************************************/
     /*** State Variables                                                                                                                ***/
     /**************************************************************************************************************************************/
-
-    /**
-     *  @dev    Gets the validity of a borrower.
-     *  @param  miner The address of the borrower to query.
-     *  @return isValid  A boolean indicating the validity of the borrower.
-     */
-    function isMiner(address miner) external view returns (bool isValid);
 
     /**
      *  @dev    Gets the validity of a factory.
@@ -222,13 +208,6 @@ interface IAssurageGlobal is INonTransparentProxied {
     /**************************************************************************************************************************************/
     /*** Allowlist Setters                                                                                                              ***/
     /**************************************************************************************************************************************/
-
-    /**
-     *  @dev   Sets the validity of the miner.
-     *  @param miner The address of the miner to set the validity for.
-     *  @param isValid  A boolean indicating the validity of the miner.
-     */
-    function setValidMiner(address miner, bool isValid) external;
 
     /**
      *  @dev   Sets the validity of the factory.

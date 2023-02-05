@@ -1,17 +1,22 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.7;
+pragma solidity 0.8.17;
 
-import { IDefaultImplementationBeacon } from "./interfaces/IDefaultImplementationBeacon.sol";
-import { SlotManipulatable } from "./SlotManipulatable.sol";
+import {IDefaultImplementationBeacon} from "./interfaces/IDefaultImplementationBeacon.sol";
+import {SlotManipulatable} from "./SlotManipulatable.sol";
 
 /// @title A completely transparent, and thus interface-less, proxy contract.
 contract Proxy is SlotManipulatable {
-
     /// @dev Storage slot with the address of the current factory. `keccak256('eip1967.proxy.factory') - 1`.
-    bytes32 private constant FACTORY_SLOT = bytes32(0x7a45a402e4cb6e08ebc196f20f66d5d30e67285a2a8aa80503fa409e727a4af1);
+    bytes32 private constant FACTORY_SLOT =
+        bytes32(
+            0x7a45a402e4cb6e08ebc196f20f66d5d30e67285a2a8aa80503fa409e727a4af1
+        );
 
     /// @dev Storage slot with the address of the current factory. `keccak256('eip1967.proxy.implementation') - 1`.
-    bytes32 private constant IMPLEMENTATION_SLOT = bytes32(0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc);
+    bytes32 private constant IMPLEMENTATION_SLOT =
+        bytes32(
+            0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc
+        );
 
     /**
      *  @dev   The constructor requires at least one of `factory_` or `implementation_`.
@@ -30,18 +35,30 @@ contract Proxy is SlotManipulatable {
 
         require(implementation != address(0));
 
-        _setSlotValue(IMPLEMENTATION_SLOT, bytes32(uint256(uint160(implementation))));
+        _setSlotValue(
+            IMPLEMENTATION_SLOT,
+            bytes32(uint256(uint160(implementation)))
+        );
     }
 
-    fallback() payable external virtual {
+    fallback() external payable virtual {
         bytes32 implementation = _getSlotValue(IMPLEMENTATION_SLOT);
 
-        require(address(uint160(uint256(implementation))).code.length != uint256(0));
+        require(
+            address(uint160(uint256(implementation))).code.length != uint256(0)
+        );
 
         assembly {
             calldatacopy(0, 0, calldatasize())
 
-            let result := delegatecall(gas(), implementation, 0, calldatasize(), 0, 0)
+            let result := delegatecall(
+                gas(),
+                implementation,
+                0,
+                calldatasize(),
+                0,
+                0
+            )
 
             returndatacopy(0, 0, returndatasize())
 
@@ -54,5 +71,4 @@ contract Proxy is SlotManipulatable {
             }
         }
     }
-
 }

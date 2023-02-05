@@ -4,9 +4,8 @@ pragma solidity 0.8.17;
 import {ERC4626, ERC20} from "solmate/mixins/ERC4626.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 import {IProtectionVault} from "../interfaces/IProtectionVault.sol";
-import {IAssurageManager} from "../interfaces/IAssurageManager.sol";
+import {IAssurageManager, AssurageManagerStorage} from "./AssurageManager.sol";
 import {IWFIL} from "../interfaces/IWFIL.sol";
-import {SendAPI} from "filecoin-solidity/contracts/v0.8/SendAPI.sol";
 
 contract ProtectionVault is IProtectionVault, ERC4626 {
     using SafeTransferLib for ERC20;
@@ -36,14 +35,15 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
     }
 
     constructor(
-        address _asset,
         address _assurageManager,
+        address _asset,
         address _migrationAdmin,
         uint256 _bootstrapMint,
         uint256 _initialSupply,
         string memory _name,
-        string memory _symbol
-    ) ERC4626(ERC20(_asset), _name, _symbol) {
+        string memory _symbol,
+        uint8 _decimals
+    ) ERC4626(ERC20(_asset), _name, _symbol, _decimals) {
         require(_asset != address(0), "Invalid Owner");
         require(
             (assurageManager = _assurageManager) != address(0),
@@ -55,12 +55,7 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
         }
 
         BOOTSTRAP_MINT = _bootstrapMint;
-
-        SafeTransferLib.safeApprove(
-            ERC20(_asset),
-            _assurageManager,
-            type(uint256).max
-        );
+        IWFIL(_asset).approve(assurageManager, type(uint256).max);
     }
 
     // ---------------------------------- //
@@ -73,6 +68,14 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
     {
         require(_assurageManager != address(0), "Invalid Address");
         assurageManager = _assurageManager;
+    }
+
+    function setApproval() public override {
+        AssurageManagerStorage aStrorage = AssurageManagerStorage(
+            assurageManager
+        );
+        require(aStrorage.assurageDelegate() == msg.sender, "INVALID_CALLER");
+        asset.safeApprove(assurageManager, type(uint256).max);
     }
 
     // ---------------------------------- //
@@ -99,18 +102,6 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
         // afterDeposit(assets, shares);
     }
 
-    function depositWithPermit(
-        uint256 assets,
-        address receiver,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external override nonReentrant returns (uint256 shares) {
-        asset.permit(msg.sender, address(this), assets, deadline, v, r, s);
-        shares = deposit(assets, receiver);
-    }
-
     function mint(uint256 shares, address receiver)
         public
         virtual
@@ -126,26 +117,6 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
         _mint(receiver, shares);
 
         emit Deposit(msg.sender, receiver, assets, shares);
-
-        // afterDeposit(assets, shares);
-    }
-
-    function mintWithPermit(
-        uint256 shares,
-        address receiver,
-        uint256 maxAssets,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external override nonReentrant returns (uint256 assets) {
-        require(
-            (assets = previewMint(shares)) <= maxAssets,
-            "P:MWP:INSUFFICIENT_PERMIT"
-        );
-
-        asset.permit(msg.sender, address(this), maxAssets, deadline, v, r, s);
-        assets = mint(shares, receiver);
     }
 
     // TODO: withdrawal interval
@@ -162,8 +133,6 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
             if (allowed != type(uint256).max)
                 allowance[owner][msg.sender] = allowed - shares;
         }
-
-        // beforeWithdraw(assets, shares);
 
         _burn(owner, shares);
 
@@ -188,8 +157,6 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
         // Check for rounding error since we round down in previewRedeem.
         require((assets = previewRedeem(shares)) != 0, "ZERO_ASSETS");
 
-        // beforeWithdraw(assets, shares);
-
         _burn(owner, shares);
 
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
@@ -197,20 +164,11 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
         asset.safeTransfer(receiver, assets);
     }
 
-    // ---------------------------------- //
-    // Operatons for Insured ( Miners )
-    // ---------------------------------- //
-
-    function sendClaimedFIL(bytes memory _miner, uint256 _compensation)
+    function withdrawFromAssurageManager(uint256 _amount)
         external
-        payable
-        override
-        nonReentrant
         onlyAssurageManager
     {
-        IWFIL(address(asset)).withdraw(_compensation);
-        SendAPI.send(_miner, _compensation);
-        // https://github.com/Zondax/filecoin-solidity/blob/master/contracts/v0.8/SendAPI.sol#L29
+        IWFIL(address(asset)).transfer(assurageManager, _amount);
     }
 
     // ---------------------------------- //
@@ -221,8 +179,8 @@ contract ProtectionVault is IProtectionVault, ERC4626 {
         return IAssurageManager(assurageManager).totalAssets();
     }
 
-    receive() external payable {
-        IWFIL(address(asset)).deposit{value: msg.value}();
-        deposit(msg.value, msg.sender);
-    }
+    // receive() external payable {
+    //     IWFIL(address(asset)).deposit{value: msg.value}();
+    //     deposit(msg.value, msg.sender);
+    // }
 }

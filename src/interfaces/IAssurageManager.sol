@@ -29,6 +29,7 @@ interface IAssurageManager is IAssurageProxied, IAssurageManagerStorage {
      */
     event VaultConfigured(
         uint256 minProtection,
+        uint256 minAmount,
         uint256 liquidityCap,
         uint256 delegateManagementFeeRate
     );
@@ -43,7 +44,9 @@ interface IAssurageManager is IAssurageProxied, IAssurageManagerStorage {
 
     event MinProtectionSet(uint256 minProtection);
 
-    event BeneficiaryBytesAddrSet(bytes beneficiaryBytesAddr);
+    event MinPeriodSet(uint256 minPeriod);
+
+    // event BeneficiaryBytesAddrSet(bytes beneficiaryBytesAddr);
 
     event newApplicationMade(
         address miner,
@@ -74,6 +77,7 @@ interface IAssurageManager is IAssurageProxied, IAssurageManagerStorage {
      */
     function configure(
         uint256 minProtection,
+        uint256 minAmount,
         uint256 liquidityCap,
         uint256 managementFee
     ) external;
@@ -99,20 +103,20 @@ interface IAssurageManager is IAssurageProxied, IAssurageManagerStorage {
 
     function setMinProtection(uint256 _minProtection) external;
 
+    function setMinPeriod(uint256 _minPeriod) external;
+
     function setAssessor(address _assessor) external;
 
-    function setBeneficiaryBytesAddr(bytes memory _beneficiaryBytesAddr)
-        external;
+    // function setBeneficiaryBytesAddr(bytes memory _beneficiaryBytesAddr)
+    //     external;
 
     function applyForProtection(
         address _miner,
         uint256 _amount,
         uint256 _period
-    ) external returns (Policy memory, uint256);
+    ) external returns (uint256);
 
-    function activatePolicy(address _miner, uint256 _id)
-        external
-        returns (Policy memory);
+    function activatePolicy(address _miner, uint256 _id) external;
 
     function fileClaim(
         address _miner,
@@ -120,13 +124,14 @@ interface IAssurageManager is IAssurageProxied, IAssurageManagerStorage {
         uint256 _claimable
     ) external;
 
-    function payCompensation(address _miner, uint256 _id)
+    function claimCompensation(address _miner, uint256 _id)
         external
+        payable
         returns (uint256);
 
-    function renewPolocy(address _miner, uint256 _id)
-        external
-        returns (Policy memory);
+    // function renewPolocy(address _miner, uint256 _id)
+    //     external
+    //     returns (Policy memory);
 
     function approvePolicy(
         address _miner,
@@ -139,8 +144,6 @@ interface IAssurageManager is IAssurageProxied, IAssurageManagerStorage {
         uint256 _id,
         uint256 _claimable
     ) external;
-
-    function rejectClaim(address _miner, uint256 _id) external;
 
     function modifyScore(
         address _miner,

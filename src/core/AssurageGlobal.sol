@@ -15,7 +15,6 @@ contract AssurageGlobal is IAssurageGlobal, NonTransparentProxied {
 
     address public override migrationAdmin;
 
-    mapping(address => bool) public override isMiner;
     mapping(address => bool) public override isVaultAsset;
     mapping(address => bool) public override isVaultDeployer;
     mapping(address => bool) public override isStrategy;
@@ -72,15 +71,6 @@ contract AssurageGlobal is IAssurageGlobal, NonTransparentProxied {
     /**************************************************************************************************************************************/
     /*** Allowlist Setters                                                                                                              ***/
     /**************************************************************************************************************************************/
-
-    function setValidMiner(address miner, bool isValid)
-        external
-        override
-        isGovernor
-    {
-        isMiner[miner] = isValid;
-        emit ValidMinerSet(miner, isValid);
-    }
 
     function setValidFactory(
         bytes32 factoryKey,

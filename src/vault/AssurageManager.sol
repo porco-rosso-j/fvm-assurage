@@ -11,8 +11,10 @@ import {IAssurageManager} from "../interfaces/IAssurageManager.sol";
 import {ProxiedInternals} from "../proxy/1967Proxy/ProxiedInternals.sol";
 import {AssurageManagerStorage} from "../proxy/AssurageManagerStorage.sol";
 
-import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
+import {SafeTransferLib, ERC20} from "solmate/utils/SafeTransferLib.sol";
 import {MinerAPIHepler} from "../filecoin-api/MinerAPIHepler.sol";
+
+import {console} from "forge-std/console.sol";
 
 contract AssurageManager is
     IAssurageManager,
@@ -23,7 +25,7 @@ contract AssurageManager is
     uint256 public constant HUNDRED_PERCENT = 100_0000;
 
     modifier onlyDelegate() {
-        require(msg.sender == assurageDelegate, "Only callable by Owner");
+        require(msg.sender == assurageDelegate, "NOT_DELEGATE");
 
         _;
     }
@@ -64,6 +66,7 @@ contract AssurageManager is
 
     function configure(
         uint256 _minProtection,
+        uint256 _minPeriod,
         uint256 _liquidityCap,
         uint256 _delegateManagementFeeRate
     ) external override {
@@ -73,15 +76,22 @@ contract AssurageManager is
             "PM:CO:NOT_DEPLOYER"
         );
         require(_delegateManagementFeeRate <= HUNDRED_PERCENT, "PM:CO:OOB");
-        require(_minProtection != 0, "");
+        require(_minProtection != 0 && _minPeriod != 0, "INVALID_AMOUNT");
 
         configured = true;
+
+        minPeriod = _minPeriod;
         minProtection = _minProtection;
         liquidityCap = _liquidityCap;
         delegateManagementFeeRate = _delegateManagementFeeRate;
 
+        assessor = assurageDelegate;
+        isAssessor[assurageDelegate] = true;
+        beneficiaryBytesAddr = _getIdFromETHAddr(address(this));
+
         emit VaultConfigured(
             _minProtection,
+            _minPeriod,
             _liquidityCap,
             _delegateManagementFeeRate
         );
@@ -101,10 +111,7 @@ contract AssurageManager is
         override
         onlyDelegate
     {
-        require(
-            _delegateManagementFeeRate <= MAX_DELEGATE_FEE_RATE,
-            "PM:SDMFR:OOB"
-        );
+        require(_delegateManagementFeeRate <= HUNDRED_PERCENT, "PM:SDMFR:OOB");
         emit DelegateManagementFeeRateSet(
             delegateManagementFeeRate = _delegateManagementFeeRate
         );
@@ -123,24 +130,20 @@ contract AssurageManager is
         override
         onlyDelegate
     {
-        require(_minProtection > 0, "Invalid Amount");
+        require(_minProtection > 0, "INVALID_AMOUNT");
         emit MinProtectionSet(minProtection = _minProtection);
     }
 
-    function setAssessor(address _assessor) public override onlyDelegate {
-        require(_assessor != address(0), "Invalid Address");
-        isAssessor[_assessor] = true;
-        emit AssessorAddrSet(assessor = _assessor);
+    function setMinPeriod(uint256 _minPeriod) public override onlyDelegate {
+        require(_minPeriod > 0, "INVALID_AMOUNT");
+        emit MinPeriodSet(minPeriod = _minPeriod);
     }
 
-    function setBeneficiaryBytesAddr(bytes memory _beneficiaryBytesAddr)
-        public
-        override
-        onlyDelegate
-    {
-        emit BeneficiaryBytesAddrSet(
-            beneficiaryBytesAddr = _beneficiaryBytesAddr
-        );
+    function setAssessor(address _assessor) public override onlyDelegate {
+        require(_assessor != address(0), "INVALID_ADDRESS");
+        assessor = _assessor;
+        isAssessor[_assessor] = true;
+        emit AssessorAddrSet(assessor = _assessor);
     }
 
     // ---------------------------------- //
@@ -149,60 +152,33 @@ contract AssurageManager is
 
     function applyForProtection(
         address _miner,
-        bytes memory _minerId,
         uint256 _amount,
         uint256 _period
-    ) public override returns (Policy memory, uint256) {
-        require(_miner == msg.sender, "Invalid caller");
-        require(
-            _validateApplication(_miner, _minerId, _amount, _period),
-            "Invalid Application"
-        );
+    ) public override returns (uint256) {
+        require(_miner == msg.sender, "INVALID_CALLER");
+        require(_amount >= minProtection, "INVALID_AMOUNT");
+        require(_period >= minPeriod, "INVALID_PEIROD");
+        _validateBeneficiary(_miner, beneficiaryBytesAddr);
 
         uint256 newId = policyId[_miner] == 0 ? 1 : (policyId[_miner] + 1);
 
         Policy storage policy = policies[_miner][newId];
         policy.miner = _miner;
-        policy.minerId = _minerId;
         policy.amount = _amount;
         policy.period = _period;
 
         policyId[_miner]++;
 
         emit newApplicationMade(_miner, _amount, _period, newId);
-        return (policies[_miner][newId], newId);
+        return newId;
     }
 
-    function _validateApplication(
-        address _miner,
-        bytes memory _minerId,
-        uint256 _amount,
-        uint256 _period
-    ) internal view returns (bool) {
-        require(_minerId.length != 0, "Invalid MinerID");
-        require(
-            _validateBeneficiary(_miner, beneficiaryBytesAddr),
-            "Invalid Beneficiary"
-        );
-        require(_amount >= minProtection, "Invalid Amount");
-        require(_period >= minPeriod, "Invalid Period");
-
-        return true;
-    }
-
-    function activatePolicy(address _miner, uint256 _id)
-        public
-        override
-        returns (Policy memory)
-    {
-        require(
-            _miner == msg.sender && _miner == policy.miner,
-            "Invalid Miner"
-        );
-        require(policy.isApproved, "Not Approved yet");
-        require(!policy.isActive, "Already activated");
+    function activatePolicy(address _miner, uint256 _id) public override {
+        require(_miner == msg.sender, "INVALID_CALLER");
 
         Policy memory policy = policies[_miner][_id];
+        require(policy.isApproved, "NOT_APPROVED");
+        require(!policy.isActive, "ALREADY_ACTIVATED");
 
         uint256 premium = _quotePremium(
             policy.amount,
@@ -214,39 +190,37 @@ contract AssurageManager is
         policy.expiry = block.timestamp + policy.period;
         policy.isActive = true;
 
-        _withdrawAndPayPremium(_miner, policy.minerId, premium);
+        _withdrawAndPayPremium(_miner, premium);
 
         policies[_miner][_id] = policy;
         emit newPolicyActivated(policy, _id);
-        return policies[_miner][_id];
     }
 
     function _quotePremium(
         uint256 _amount,
         uint256 _peirod,
         uint8 _score
-    ) public view returns (uint256) {
-        uint256 basePremium = (_amount * _peirod) *
-            (premiumFactor / DECIMAL_PRECISION);
-        return (basePremium * DECIMAL_PRECISION) / (_score * DECIMAL_PRECISION);
+    ) public pure returns (uint256) {
+        uint256 PERIOD_DAYS = _peirod / 60 / 60 / 24;
+        uint256 BASE_PREMIUM = (_amount * PERIOD_DAYS * premiumFactor) /
+            DECIMAL_PRECISION;
+        uint256 PREMIUM = (BASE_PREMIUM *
+            ((_score * DECIMAL_PRECISION) / 100)) / DECIMAL_PRECISION;
+        return PREMIUM;
     }
 
-    function _withdrawAndPayPremium(
-        address _miner,
-        bytes memory _minerId,
-        uint256 _premium
-    ) internal {
+    function _withdrawAndPayPremium(address _miner, uint256 _premium) internal {
         require(
-            _validateAvailableBalance(_minerId, _miner),
-            "Insufficient Balance"
+            _validateAvailableBalance(_miner, _premium),
+            "INSUFFICIENT_BALANCE"
         );
 
         require(
             _validateBeneficiaryInfo(_miner, beneficiaryBytesAddr, _premium),
-            "Invalid Beneficiary"
+            "INVALID_BENEFICIARY_INFO"
         );
 
-        require(_withdrawBalance(_minerId, _premium), "Withdrawal Failed");
+        require(_withdrawBalance(_miner, _premium), "WITHDRAWAL_FAILED");
 
         IWFIL(asset).deposit{value: _premium}();
 
@@ -259,56 +233,52 @@ contract AssurageManager is
     function fileClaim(
         address _miner,
         uint256 _id,
-        uint256 _claimable,
-        bytes memory _minerId
+        uint256 _claimable
     ) public override {
-        require(_miner == msg.sender, "Invalid caller");
+        require(_miner == msg.sender, "INVALID_CALLER");
+        Policy memory policy = policies[_miner][_id];
+        require(policy.isActive, "NOT_ACTIVATED");
         require(
-            policies[_miner][_id].amount >= _claimable,
-            "claim amount is too large"
+            policy.amount >= _claimable && _claimable != 0,
+            "INVALID_AMOUNT"
         );
-
-        uint256 newId = claimId[_miner] == 0 ? 1 : (claimId[_miner] + 1);
 
         Claim memory claim = _updateClaim(
             _miner,
-            _minerId,
+            _id,
             _claimable,
             false,
-            false,
-            newId
+            false
         );
-
-        claimId[_miner]++;
 
         emit newClaimFiled(claim, _id);
     }
 
-    function payCompensation(address _miner, uint256 _id)
+    function claimCompensation(address _miner, uint256 _id)
         public
+        payable
         override
         returns (uint256)
     {
-        require(_miner == msg.sender, "Invalid caller");
+        require(_miner == msg.sender, "INVALID_CALLER");
 
-        Claim memory claim = claims[_miner][_id];
-        require(_miner == claim.miner, "Invalid miner");
-        require(claim.isComfirmed, "Claim hasn't been confirmed yet");
-        require(claim.isPaid, "Already Paid");
-        require(
-            totalAssets() >= claim.claimable,
-            "Insufficient Vault Liquidity"
+        Claim memory claim = policies[_miner][_id].claim;
+        require(claim.isConfirmed, "NOT_CONFIRMED");
+        require(!claim.isPaid, "ALREADY_PAID");
+        require(totalAssets() >= claim.claimable, "INSUFFICIENT_LIQUIDITY");
+
+        SafeTransferLib.safeTransferFrom(
+            ERC20(asset),
+            vault,
+            address(this),
+            claim.claimable
         );
 
-        IProtectionVault(vault).sendClaimedFIL(claim.minerId, claim.claimable);
-        _updateClaim(
-            _miner,
-            claim.minerId,
-            claim.claimable,
-            claim.isComfirmed,
-            true,
-            _id
-        );
+        IWFIL(address(asset)).withdraw(claim.claimable);
+        _sendClaimedFILToMiner(_miner, claim.claimable);
+
+        _updateClaim(_miner, _id, claim.claimable, claim.isConfirmed, true);
+        policies[_miner][_id].isActive = false;
 
         emit newCompensationPaid(claim, _id);
         return claim.claimable;
@@ -316,46 +286,19 @@ contract AssurageManager is
 
     function _updateClaim(
         address _miner,
-        bytes memory _minerId,
+        uint256 _id,
         uint256 _claimable,
-        bool _isComfirmed,
-        bool _isPaid,
-        uint256 _id
+        bool _isConfirmed,
+        bool _isPaid
     ) internal returns (Claim memory) {
-        Claim storage claim = claims[_miner][_id];
+        Claim storage claim = policies[_miner][_id].claim;
 
-        claim.miner = _miner;
-        claim.minerId = _minerId;
         claim.claimable = _claimable;
-        claim.isComfirmed = _isComfirmed;
+        claim.isConfirmed = _isConfirmed;
         claim.isPaid = _isPaid;
 
         return claim;
     }
-
-    // function renewPolocy(address _miner, uint256 _id)
-    //     public
-    //     override
-    //     returns (Policy memory)
-    // {
-    //     require(_miner == msg.sender, "Invalid caller");
-
-    //     Policy storage policy = policies[_miner][_id];
-    //     require(policy.expiry >= block.timestamp, "Policy has expired");
-
-    //     uint256 premium = _quotePremium(
-    //         policy.amount,
-    //         policy.period,
-    //         policy.score
-    //     );
-    //     policy.premium = premium;
-
-    //     policy.expiry = policy.expiry + policy.period;
-
-    //     return policies[_miner][_id];
-    // }
-
-    // should be here applyForPolicyRenewal()
 
     // ---------------------------------- //
     // Assessor Operation
@@ -366,10 +309,13 @@ contract AssurageManager is
         uint256 _id,
         uint8 _score
     ) public override {
-        require(isAssessor[msg.sender], "Invalid Assossor");
+        require(
+            isAssessor[msg.sender] && assessor == msg.sender,
+            "INVALID_ASSESSOR"
+        );
 
         Policy storage policy = policies[_miner][_id];
-        require(policy.isApproved == false, "Already aaproved");
+        require(policy.isApproved == false, "ALREADY_APPROVED");
 
         policy.isApproved = true;
         policy.score = _score;
@@ -382,23 +328,11 @@ contract AssurageManager is
     ) public override {
         require(isAssessor[msg.sender], "Invalid Assossor");
 
-        Claim storage claim = claims[_miner][_id];
-        require(
-            claim.miner != address(0) && claim.claimable != 0,
-            "Invalid Claim"
-        );
+        Claim storage claim = policies[_miner][_id].claim;
+        require(claim.claimable != 0, "Invalid Claim");
 
         claim.claimable = _claimable;
-        claim.isComfirmed = true;
-    }
-
-    function rejectClaim(address _miner, uint256 _id) public override {
-        require(isAssessor[msg.sender], "Invalid Assossor");
-
-        Claim storage claim = claims[_miner][_id];
-        require(claim.miner != address(0), "Invalid Miner");
-
-        claim.isComfirmed = false;
+        claim.isConfirmed = true;
     }
 
     function modifyScore(
@@ -469,7 +403,7 @@ contract AssurageManager is
 
         // send wFIL back to vault
         SafeTransferLib.safeTransferFrom(
-            ERC20(wFIL),
+            ERC20(asset),
             strategy,
             vault,
             withdrawn_amount
@@ -479,6 +413,19 @@ contract AssurageManager is
     // ---------------------------------- //
     // View Functions
     // ---------------------------------- //
+    function getClaim(address _miner, uint256 _id)
+        external
+        view
+        returns (
+            uint256,
+            bool,
+            bool
+        )
+    {
+        Claim memory claim = policies[_miner][_id].claim;
+        return (claim.claimable, claim.isConfirmed, claim.isPaid);
+    }
+
     function factory() external view override returns (address) {
         return _factory();
     }
@@ -512,4 +459,44 @@ contract AssurageManager is
 
         return totalAsset;
     }
+
+    receive() external payable {}
 }
+
+/*
+
+   function rejectClaim(address _miner, uint256 _id) external;
+
+    function rejectClaim(address _miner, uint256 _id) public override {
+        require(isAssessor[msg.sender], "Invalid Assossor");
+
+        Claim storage claim = policies[_miner][_id].claim;
+        require(claim.claimable != 0, "Invalid Claim");
+
+        claim.isConfirmed = false;
+    }
+
+    // function renewPolocy(address _miner, uint256 _id)
+    //     public
+    //     override
+    //     returns (Policy memory)
+    // {
+    //     require(_miner == msg.sender, "Invalid caller");
+
+    //     Policy storage policy = policies[_miner][_id];
+    //     require(policy.expiry >= block.timestamp, "Policy has expired");
+
+    //     uint256 premium = _quotePremium(
+    //         policy.amount,
+    //         policy.period,
+    //         policy.score
+    //     );
+    //     policy.premium = premium;
+
+    //     policy.expiry = policy.expiry + policy.period;
+
+    //     return policies[_miner][_id];
+    // }
+
+    // should be here applyForPolicyRenewal()
+*/

@@ -50,7 +50,7 @@ interface IAssurageManagerStorage {
         view
         returns (address assurageDelegate);
 
-    function premiumFactor() external view returns (uint256 premiumFactor);
+    //function premiumFactor() external view returns (uint256 premiumFactor);
 
     function minProtection() external view returns (uint256 minProtection);
 
@@ -65,7 +65,6 @@ interface IAssurageManagerStorage {
 
     struct Policy {
         address miner;
-        bytes minerId;
         uint256 amount;
         uint256 premium;
         uint256 period;
@@ -73,13 +72,12 @@ interface IAssurageManagerStorage {
         uint8 score;
         bool isApproved;
         bool isActive;
+        Claim claim;
     }
 
     struct Claim {
-        address miner;
-        bytes minerId;
         uint256 claimable;
-        bool isComfirmed;
+        bool isConfirmed;
         bool isPaid;
     }
 
@@ -88,26 +86,25 @@ interface IAssurageManagerStorage {
         view
         returns (
             address miner,
-            bytes memory minerId,
             uint256 amount,
             uint256 premium,
             uint256 period,
             uint256 expiry,
             uint8 score,
             bool isApproved,
-            bool isActive
+            bool isActive,
+            Claim memory claim
         );
 
-    function claims(address _miner, uint256 _id)
-        external
-        view
-        returns (
-            address miner,
-            bytes memory minerId,
-            uint256 claimable,
-            bool isComfirmed,
-            bool isPaid
-        );
+    // function claims(address _miner, uint256 _id)
+    //     external
+    //     view
+    //     returns (
+    //         address miner,
+    //         uint256 claimable,
+    //         bool isConfirmed,
+    //         bool isPaid
+    //     );
 
     function isAssessor(address _assessor)
         external
@@ -120,6 +117,36 @@ interface IAssurageManagerStorage {
         returns (address strategy);
 }
 
-// function policies(address _miner, uint _id) external view returns(Policy memory);
+// function getPolicy(address _miner, uint256 _id)
+//     external
+//     view
+//     returns (Policy memory);
 
-// function claims(address _miner, uint _id) external view returns (Claim memory);
+// function getClaim(address _miner, uint256 _id)
+//     external
+//     view
+//     returns (Claim memory);
+
+// function getPolicy(address _miner, uint256 _id)
+//     external
+//     view
+//     returns (
+//         address miner,
+//         uint256 amount,
+//         uint256 premium,
+//         uint256 period,
+//         uint256 expiry,
+//         uint8 score,
+//         bool isApproved,
+//         bool isActive
+//     );
+
+// function getClaim(address _miner, uint256 _id)
+//     external
+//     view
+//     returns (
+//         address miner,
+//         uint256 claimable,
+//         bool isConfirmed,
+//         bool isPaid
+//     );
