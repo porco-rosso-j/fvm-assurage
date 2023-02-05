@@ -83,8 +83,6 @@ Here is an example scnerio of a sector fault that one of the top miners mistaken
 
 After the assessors carefully review the application and approve it after diligent assessment, the protection contract will be successfully activated by paying the premium. One day before the protection expires, the miner is slashed for being off-line for three consecutive days and charged 3,000 FIL in total. Then, it submits the claim for protection that can cover the loss of slashing to the Assurage and fully gets compensated if the claim is considered valid. The net loss the miner incurred is just 64.28 FIL which is the fee to join the protection, although the miner would have lost 2935.72 FIL without the protection.
 
-- Termination Penalty
-
 ## Test
 `AssurageSetup.t.sol` deploys the whole contracts and `PolicyOperations.t.sol` simulates and tests the core logics in `AssurageManager.sol`, such as insurance applications/activation, claim filings and payments.
 
