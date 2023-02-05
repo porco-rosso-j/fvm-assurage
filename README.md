@@ -98,6 +98,8 @@ Claims that are likely dismissed:
 - Consensus Fault
 - Termination Penalty
 
-## Deployment & test
+## Test
+`test` deploys the whole contracts and simulate the core logics in `AssurageManager.sol`, such as insurance applications/activation, claim filings and payments.
 
 `forge build`
+`forge test`
