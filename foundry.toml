@@ -15,8 +15,8 @@ auto_detect_solc = false
 bytecode_hash = "none"
 fuzz = { runs = 1_000 }
 gas_reports = ["*"]
-optimizer = true
-optimizer_runs = 10_000
+optimizer = false
+
 solc = "0.8.17"
 src = "src"
 test = "test"

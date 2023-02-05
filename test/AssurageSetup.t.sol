@@ -8,7 +8,7 @@ contract Address {
     receive() external payable {}
 }
 
-import {AssurageManager} from "src/vault/AssurageManager.sol";
+import {AssurageManager} from "./mocks/AssurageManagerMock.sol";
 import {AssurageManagerFactory} from "src/proxy/AssurageManagerFactory.sol";
 import {AssurageManagerInitializer} from "src/proxy/AssurageManagerInitializer.sol";
 
