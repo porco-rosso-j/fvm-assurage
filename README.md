@@ -99,7 +99,7 @@ Claims that are likely dismissed:
 - Termination Penalty
 
 ## Test
-`test` deploys the whole contracts and simulate the core logics in `AssurageManager.sol`, such as insurance applications/activation, claim filings and payments.
+`AssurageSetup.t.sol` deploys the whole contracts and `PolicyOperations.t.sol` simulates and tests the core logics in `AssurageManager.sol`, such as insurance applications/activation, claim filings and payments.
 
-`forge build`
-`forge test`
+`forge build`   
+`forge test`   
