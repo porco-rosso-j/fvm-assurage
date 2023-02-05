@@ -61,6 +61,16 @@ As one of the most important modules for `AssurageManager.sol`, Zondax's Solidit
 
 - [Zondax Filecoin Solidity API](https://github.com/Zondax/filecoin-solidity)
 
+### source code overview
+
+| ./src/(folder) | Description |
+| -------- | ------- |
+| [`core`](https://github.com/porco-rosso-j/fvm-assurage/tree/main/src/core) | Contains a global contract called `AsssurageGlobal.sol` that configures crucial parameters and manages the entire protocol. |
+| [`filecoin-api`](https://github.com/porco-rosso-j/fvm-assurage/tree/main/src/filecoin-api) | Imports Zondax soldiity API contracts and `MinerAPIHelper.sol` that interacts with MinerActor on FEVM and validates the returned information. |
+| [`proxy`](https://github.com/porco-rosso-j/fvm-assurage/tree/main/src/proxy) | Assurage's proxy and proxy factory contracts that inherits EIP1967 proxy contracts. |
+| [`strategies`](https://github.com/porco-rosso-j/fvm-assurage/tree/main/src/strategies) | Holds strategy contracts that AssurageManager contract allocate its idol funds. As an example, it has `LidoStrategy.sol`. |
+| [`vault`](https://github.com/porco-rosso-j/fvm-assurage/tree/main/src/vault) | Contains crucial contracts for Assurage: `ProtectionVault.sol`, `AR4626Router.sol` and `AssurageManager.sol`. |
+
 ## Insurance Policy Details
 
 #### Premium
@@ -86,5 +96,9 @@ After the assessors carefully review the application and approve it after dilige
 ## Test
 `AssurageSetup.t.sol` deploys the whole contracts, and `PolicyOperations.t.sol` simulates and tests the core logic in `AssurageManager.sol`, such as insurance applications/activation, claim filings and payments.
 
-`forge build`   
-`forge test`   
+```shell
+git clone git@github.com:porco-rosso-j/fvm-assurage.git
+cd fvm-assurage
+forge build
+forge test   
+```
