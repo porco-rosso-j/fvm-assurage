@@ -11,32 +11,6 @@ import {ProtectionVault} from "src/vault/ProtectionVault.sol";
 import {AssurageManager} from "src/vault/AssurageManager.sol";
 import {AssurageManagerStorage} from "src/proxy/AssurageManagerStorage.sol";
 
-// import {IWFIL} from "src/interfaces/IWFIL.sol";
-
-// import {console} from "forge-std/console.sol";
-
-// contract MockSP {
-//     function sendEther(address _recepient, uint256 _amount) external payable {
-//         console.logUint(_recepient.balance);
-//         bool success;
-//         assembly {
-//             success := call(gas(), _recepient, _amount, 0, 0, 0, 0)
-//         }
-//         //require(success, "ETH_TRANSFER_FAILED");
-//     }
-
-//     // fallback() external payable {
-//     //     //sendEther(msg.sender, msg.data);
-//     //     uint256 amount = abi.decode(msg.data, (uint256));
-//     //     address recepient = msg.sender;
-//     //     bool success;
-//     //     assembly {
-//     //         success := call(gas(), recepient, amount, 0, 0, 0, 0)
-//     //     }
-//     //     require(success, "ETH_TRANSFER_FAILED");
-//     // }
-// }
-
 interface IWFIL {
     function withdraw(uint256) external;
 
