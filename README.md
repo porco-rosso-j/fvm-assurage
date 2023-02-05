@@ -28,7 +28,7 @@ Fault insurance that Assurage provides is the financial protection for SPs who a
 
 Assurage's insurance scheme is not processed entirely on-chain but needs an intermediary called Assurage Delegate (see below), since, at this stage, there is no oracle that provides FVM data with contracts on FEVM in a trustless manner, it seems technically infeasible to fetch and store all data on SPs on-chain, e.g. the basic SP's information and past performance for reviewing their applications for protection and the occurrence of fault events to conduct claim assessments and decide to proceed payment. 
 
-Hence, there need to be centralized actors that assess the information and proceed the vital procedures off-chain. That said, Assurage Delegates are well-incentivized to carry out honest and fair work. This is because they have to show integrity continuously to compete with other delegates. Also, they can delegate their assessing work to another trusted entity called Assessor, which can be a multi-sig controlled address instead of one person/entity controlled by a group of people consisting of well-known experts.
+Hence, there need to be centralized actors that assess the information and proceed the vital procedures off-chain. That said, Assurage Delegates are well-incentivized to carry out honest and fair work. This is because they have to show integrity continuously to compete with other delegates. Also, they can delegate their assessing work to another trusted entity called Assessor, which can be a multi-sig controlled address, instead of one person/entity, requiring N-of-M signatures(agreements) by a group of people consisting of well-known experts.
 
 ## Protocol Overview
 
