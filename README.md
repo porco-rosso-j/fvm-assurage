@@ -116,3 +116,8 @@ cd fvm-assurage
 forge build
 forge test   
 ```
+
+Screen shot of a policy activation transaction
+
+<img src="https://user-images.githubusercontent.com/88586592/216910735-b09d9da9-2bc5-426b-b5c5-faccec9d20db.png" height="300" width="350" >
+
