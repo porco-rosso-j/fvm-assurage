@@ -25,7 +25,7 @@ More details:
 
 ## Assurage's Insurance for Sector Fault
 
-Fault insurance that Assurage provides is the financial protection for SPs who agree on an insurance contract on Assurage and pay the premium for it. It compensates affected SPs when they are unwillingly slashed for being faulty on the network. After insurance market creater called Assurage Delegate have completed reviewing and approving filed claims submitted by SP, the cover is paid from the capital supplied by insurers, those who deposit funds to Assurage's Protection vault. 
+Fault insurance that Assurage provides is financial protection for SPs who agree on an insurance contract with Assurage and pay the premium for it. It compensates affected SPs when they are unwillingly slashed for being faulty on the network. After the insurance market creator called Assurage Delegate has completed reviewing and approving filed claims submitted by SP, the cover is paid from the capital supplied by insurers, those who deposit funds to Assurage's Protection vault. 
 
 ## Protocol Overview
 
@@ -35,7 +35,7 @@ Assurage is an insurance platform for Storage Providers, which primarily consist
 - The insurers: _Liquidity Providers_, who provide insurance capital and generate profits. 
 - The insured: _Storage Providers_, who pay premiums and purchase protections to be protected from sector fault penalties. 
 
-On Assurage, there are bunch of insurance markets created by a number of Assurage Delegates. So, both SPs and LPs need to carefully choose a protection vault they either deposit their funds to or have a protection contract. Below is the more detailed descriptions of the three parties.
+On Assurage, there are a bunch of insurance markets created by a number of Assurage Delegates. So, both SPs and LPs need to carefully choose a protection vault they either deposit their funds to or have a protection contract. Below is the more detailed descriptions of the three parties.
 
 #### Assurage Delegate
 
@@ -43,7 +43,7 @@ Assurage Delegates can create insurance markets by deploying and managing both `
 
 #### Storage Providers
 
-Storage Providers or Miners choose active insurance markets that fit their growth stages and preferences and decide to submit applications that contain the information about the contracts: insurance amount and duration. If approved, they activate the policy and can be compensated when punished for sector faults. SPs who agree the contract should register the `AssurageManager.sol` contract as a `beneficiary` before the policy activation in order for the Assurage to be able to withdraw premium payment from them, which will be sent to `ProtectionVault.sol` contract.
+Storage Providers or Miners choose active insurance markets that fit their growth stages and preferences and decide to submit applications that contain the information about the contracts: insurance amount and duration. If approved, they activate the policy and can be compensated when punished for sector faults. SPs who agree to the contract should register the `AssurageManager.sol` contract as a `beneficiary` before the policy activation in order for the Assurage to be able to withdraw premium payment from them, which will be sent to `ProtectionVault.sol` contract.
 
 #### Liquidity Providers
 
@@ -71,14 +71,14 @@ As one of the most important modules for `AssurageManager.sol`, Zondax's Solidit
 | [`core`](https://github.com/porco-rosso-j/fvm-assurage/tree/main/src/core) | Contains a global contract called `AsssurageGlobal.sol` that configures crucial parameters and manages the entire protocol. |
 | [`filecoin-api`](https://github.com/porco-rosso-j/fvm-assurage/tree/main/src/filecoin-api) | Imports Zondax soldiity API contracts and `MinerAPIHelper.sol` that interacts with MinerActor on FEVM and validates the returned information. |
 | [`proxy`](https://github.com/porco-rosso-j/fvm-assurage/tree/main/src/proxy) | Assurage's proxy and proxy factory contracts that inherits EIP1967 proxy contracts. |
-| [`strategies`](https://github.com/porco-rosso-j/fvm-assurage/tree/main/src/strategies) | Holds strategy contracts that AssurageManager contract allocate its idol funds. As an example, it has `LidoStrategy.sol`. |
+| [`strategies`](https://github.com/porco-rosso-j/fvm-assurage/tree/main/src/strategies) | Holds strategy contracts that AssurageManager contract allocates its idol funds. As an example, it has `LidoStrategy.sol`. |
 | [`vault`](https://github.com/porco-rosso-j/fvm-assurage/tree/main/src/vault) | Contains crucial contracts for Assurage: `ProtectionVault.sol`, `AR4626Router.sol` and `AssurageManager.sol`. |
 
-## Constrains and Solutions 
+## Constraints and Solutions 
 
-Assurage's insurance scheme is not processed entirely on-chain but needs the Assurage Delegate or Assessor as an intermediary, since, at this stage, there is no oracle that provides FVM data with contracts on FEVM in a trustless manner, it seems technically infeasible to fetch and store all data on SPs on-chain and algorithmically determine the validity of applications and claims. Hence, Assurage Delegates can be seen as centralized entities that could misbehave and corrupt.
+Assurage's insurance scheme is not processed entirely on-chain but needs the Assurage Delegate or Assessor as an intermediary since, at this stage, there is no oracle that provides FVM data with contracts on FEVM in a trustless manner, it seems technically infeasible to fetch and store all data on SPs on-chain and algorithmically determine the validity of applications and claims. Hence, Assurage Delegates can be seen as centralized entities that could misbehave and become corrupt.
 
-That said, Assurage is designed to minimalize such risks by incentivizing the Delegates to be honest and dilligent due to the market force: They have to show integrity continuously to compete with other delegates. Also, they can delegate their assessment work to another trusted entity called Assessor, which can be a multi-sig controlled address, instead of one person/entity, requiring N-of-M signatures(agreements) by a group of people consisting of well-known experts.
+That said, Assurage is designed to minimalize such risks by incentivizing the Delegates to be honest and diligent due to the market force: They have to show integrity continuously to compete with other delegates. Also, they can delegate their assessment work to another trusted entity called Assessor, which can be a multi-sig controlled address, instead of one person/entity, requiring N-of-M signatures(agreements) by a group of people consisting of well-known experts.
 
 ## Premium payment
 
@@ -99,13 +99,13 @@ Score(%) = {1 ~ 100}
 
 The equation for determining the premium cost is inspired by Nexus Mutual, where the premium cost increases linearly depending on each variable in the equation.
 
-For the sake of the prototype, the score values are taken from [Filecoin Plus](https://filfox.info/en/ranks/power) where the scores of top miners mostly range from 90 - 100. According to the website, this value is constructed based on Online Reachability Score, Committed Sectors Proofs Score and Storage Deals Score. In production, however, it can be calculated based on various factors, such as the performance metrics(the number of sectors and deals), financial metrics ( balance, average daily rewards, and cumulative rewards), and the record of historical fault cases.
+For the sake of the prototype, the score values are taken from [Filecoin Plus](https://filfox.info/en/ranks/power) where the scores of top miners mostly range from 90 - 100. According to the website, this value is constructed based on Online Reachability Score, Committed Sectors Proofs Score and Storage Deals Score. In production, however, it can be calculated based on various factors, such as performance metrics(the number of sectors and deals), financial metrics ( balance, average daily rewards, and cumulative rewards), and the record of historical fault cases.
 
 ## Example: A SP's user story
 
-Here is an example scenario of a sector fault where one of the top miners mistakenly makes a sector stay offline for three consecutive days. Suppose a SP who has been operating as a Storage Provider with a quite solid performance and a daily average earning of 1,000 FIL per day decides to join a protection. He got a protection whose coverage is 10,000 FIL and the duration is 90 days, costing approximately 64.28 FIL ( it's assumed that the SP's score is 98).
+Here is an example scenario of a sector fault where one of the top miners mistakenly makes a sector stay offline for three consecutive days. Suppose a SP who has been operating as a Storage Provider with a quite solid performance and a daily average earning of 1,000 FIL per day decides to join an insurance. He got a protection whose coverage is 10,000 FIL and the duration is 90 days, costing approximately 64.28 FIL ( it's assumed that the SP's score is 98).
 
-After either the delegate or assessor carefully reviewed the application and approved it, the protection contract was successfully activated, and the premium the SP paid was sent to the vault. Afterwards, the SP was slashed for being offline for three days and charged 3,000 FIL before the contract expiration. Then, the SP submitted a claim filing for cover that can fully make up the loss. Again, the delegate or assessor diligently assessed the claim's validity by examining the event on-chain. Then, finally, they approved and compensated the SP because the claim is considered valid. The net loss the SP incurred was only 64.28 FIL which is the fee to join the protection and he saved 3,000 FIL. 
+After either the delegate or assessor carefully reviewed the application and approved it, the protection contract was successfully activated, and the premium the SP paid was sent to the vault. Afterward, the SP was slashed for being offline for three days and charged 3,000 FIL before the contract expiration. Then, the SP submitted a claim filing for cover that could fully make up the loss. Again, the delegate or assessor diligently assessed the claim's validity by examining the event on-chain. Then, finally, they approved and compensated the SP because the claim was considered valid. The net loss the SP incurred was only 64.28 FIL which is the fee to join the protection and he saved 3,000 FIL. 
 
 ## Test
 `AssurageSetup.t.sol` deploys the whole contracts, and `PolicyOperations.t.sol` simulates and tests the core logic in `AssurageManager.sol`, such as insurance applications/activation, claim filings and payments.
