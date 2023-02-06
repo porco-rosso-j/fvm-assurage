@@ -5,10 +5,24 @@ import {DSTest} from "ds-test/test.sol";
 import {Vm} from "forge-std/Vm.sol";
 
 contract Address {
+    function sendFIL(address payable _manager, uint256 _amount) public payable {
+        (bool success, ) = _manager.call{value: _amount}("");
+        require(success, "WETH: ETH transfer failed");
+    }
+
     receive() external payable {}
+
+    fallback() external payable {
+        (address payable _manager, uint256 amount) = abi.decode(
+            msg.data,
+            (address, uint256)
+        );
+        sendFIL(_manager, amount);
+    }
 }
 
 import {AssurageManager} from "./mocks/AssurageManagerMock.sol";
+//import {AssurageManager} from "src/vault/AssurageManager.sol";
 import {AssurageManagerFactory} from "src/proxy/AssurageManagerFactory.sol";
 import {AssurageManagerInitializer} from "src/proxy/AssurageManagerInitializer.sol";
 

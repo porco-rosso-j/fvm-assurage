@@ -209,7 +209,10 @@ contract AssurageManager is
         return PREMIUM;
     }
 
-    function _withdrawAndPayPremium(address _miner, uint256 _premium) internal {
+    function _withdrawAndPayPremium(address _miner, uint256 _premium)
+        public
+        payable
+    {
         require(
             _validateAvailableBalance(_miner, _premium),
             "INSUFFICIENT_BALANCE"

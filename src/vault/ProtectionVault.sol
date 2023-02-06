@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity 0.8.17;
 
-import {ERC4626, ERC20} from "solmate/mixins/ERC4626.sol";
+import {ERC4626, ERC20} from "./external/ERC4626.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 import {IProtectionVault} from "../interfaces/IProtectionVault.sol";
 import {IAssurageManager, AssurageManagerStorage} from "./AssurageManager.sol";

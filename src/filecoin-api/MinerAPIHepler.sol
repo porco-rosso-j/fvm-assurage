@@ -21,6 +21,7 @@ contract MinerAPIHepler {
         return ownerReturn.owner;
     }
 
+    // Still Unusable func
     function _getIdFromETHAddr(address _add)
         internal
         view
@@ -28,7 +29,7 @@ contract MinerAPIHepler {
     {
         bytes memory bytesAddr = abi.encodePacked(_add);
         uint64 addressUint = PrecompilesAPI.resolveEthAddress(bytesAddr);
-        return BytesHelper.toBytes(addressUint);
+        return BytesHelper.toBytes(uint256(addressUint));
     }
 
     function _validateAvailableBalance(address _add, uint256 _premium)

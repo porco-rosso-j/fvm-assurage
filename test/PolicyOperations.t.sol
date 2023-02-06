@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity 0.8.17;
 
-// import {DSTest} from "ds-test/test.sol";
 import {StdCheats} from "forge-std/StdCheats.sol";
 import {AssurageManagerBase, Address, DSTest, Vm, console} from "./AssurageSetup.t.sol";
 
@@ -11,10 +10,11 @@ contract PolicyOperationsBase is AssurageManagerBase {
     address internal SP = address(new Address());
     address internal NonSP = address(new Address());
     address internal LP = address(new Address());
-    uint256 internal A_MONTH = 2628000;
-    uint256 internal TEN_FIL = 10e18;
+    uint256 internal A_MONTH = 2628000 * 6;
+    uint256 internal TEN_FIL = 1000e18;
     uint8 internal SCORE = 99;
-    uint256 internal CLAIMABLE = 5e18;
+    uint256 internal CLAIMABLE = 500e18;
+    uint256 internal LP_DEPOSIT = 10000e18;
 
     function _activationSetup() internal returns (uint256) {
         assurageManager.configure(10e18, 2628000, 1_000_000e18, 0.1e6);
@@ -31,8 +31,8 @@ contract PolicyOperationsBase is AssurageManagerBase {
     function _claimSetup() internal returns (uint256) {
         uint256 id = _activationSetup();
 
+        vm.deal(address(SP), 1000e18);
         vm.prank(SP);
-        vm.deal(address(assurageManager), 1e18);
         assurageManager.activatePolicy(SP, id);
         return id;
     }
@@ -46,9 +46,9 @@ contract PolicyOperationsBase is AssurageManagerBase {
         vm.prank(ASSURAGE_DELEGATE);
         assurageManager.approveClaim(SP, id, CLAIMABLE);
 
-        vm.deal(address(LP), 10e18);
+        vm.deal(address(LP), LP_DEPOSIT);
         vm.prank(address(LP));
-        asset.deposit{value: 10e18}();
+        asset.deposit{value: LP_DEPOSIT}();
 
         return id;
     }
@@ -75,7 +75,7 @@ contract Application is PolicyOperationsBase {
         vm.prank(ASSURAGE_DELEGATE);
         assurageManager.setMinProtection(TEN_FIL);
 
-        uint256 NINE_FIL = 9e17;
+        uint256 NINE_FIL = 900e17;
         vm.prank(SP);
         vm.expectRevert("INVALID_AMOUNT");
         assurageManager.applyForProtection(SP, NINE_FIL, A_MONTH);
@@ -91,6 +91,7 @@ contract Application is PolicyOperationsBase {
         assurageManager.applyForProtection(SP, A_DAY, A_DAY);
     }
 
+    // forge test --match-contract Application --match-test test_application_success --fork-url https://api.hyperspace.node.glif.io/rpc/v1 -vvv
     function test_application_success() public {
         (
             address miner,
@@ -108,6 +109,8 @@ contract Application is PolicyOperationsBase {
         assertEq(amount, uint256(0));
         assertEq(period, uint256(0));
 
+        consoleBefore(miner, amount, period);
+
         vm.prank(SP);
         uint256 id = assurageManager.applyForProtection(SP, TEN_FIL, A_MONTH);
 
@@ -116,6 +119,35 @@ contract Application is PolicyOperationsBase {
         assertEq(miner, SP);
         assertEq(amount, TEN_FIL);
         assertEq(period, A_MONTH);
+
+        consoleAfter(miner, amount, period);
+    }
+
+    // consoles
+    function consoleBefore(
+        address miner,
+        uint256 amount,
+        uint256 period
+    ) internal view {
+        console.log("");
+        console.log("[Before] Policy Application:");
+        console.log("miner", miner);
+        console.log("amount", amount);
+        console.log("period", period);
+        console.log("");
+    }
+
+    function consoleAfter(
+        address miner,
+        uint256 amount,
+        uint256 period
+    ) internal view {
+        console.log("");
+        console.log("[After] Policy Application:");
+        console.log("miner", miner);
+        console.log("amount", amount);
+        console.log("period", period);
+        console.log("");
     }
 }
 
@@ -222,7 +254,20 @@ contract Activation is PolicyOperationsBase {
         assertEq(amount, TEN_FIL);
         assertEq(period, A_MONTH);
 
-        beforeActivation();
+        vm.deal(address(SP), 20e18);
+
+        consoleBefore(
+            miner,
+            amount,
+            premium,
+            period,
+            expiry,
+            score,
+            isApproved,
+            isActive
+        );
+
+        vm.prank(SP);
         assurageManager.activatePolicy(SP, id);
 
         (
@@ -245,6 +290,82 @@ contract Activation is PolicyOperationsBase {
         assertEq(score, SCORE);
         assertTrue(isApproved);
         assertTrue(isActive);
+
+        consoleAfter(
+            miner,
+            amount,
+            premium,
+            period,
+            expiry,
+            score,
+            isApproved,
+            isActive
+        );
+    }
+
+    // consoles
+
+    function consoleBefore(
+        address miner,
+        uint256 amount,
+        uint256 premium,
+        uint256 period,
+        uint256 expiry,
+        uint8 score,
+        bool isApproved,
+        bool isActive
+    ) internal view {
+        console.log("");
+        console.log(
+            "/////////////////// --- POLICY ACTIVATION ---- ////////////////////////"
+        );
+        console.log("");
+        console.log("");
+        console.log("---- Before -----");
+        console.log("- SP Address     :", miner);
+        console.log("- Cover Amount   :", amount / 1e18, "FIL");
+        console.log("- Premium Amount :", premium / 1e18, "FIL");
+        console.log("- Duration       :", period / 60 / 60 / 24, "DAYS");
+        console.log("- Expiry         :", expiry, "(TIMESTAMP)");
+        console.log("- SP Score       :", score, "Pts");
+        console.log("- Approval?      :", isApproved);
+        console.log("- Active?        :", isActive);
+        console.log("- SP FIL Balance :", address(SP).balance / 1e18, "FIL");
+        console.log("");
+    }
+
+    function consoleAfter(
+        address miner,
+        uint256 amount,
+        uint256 premium,
+        uint256 period,
+        uint256 expiry,
+        uint8 score,
+        bool isApproved,
+        bool isActive
+    ) internal view {
+        console.log("         .");
+        console.log("         .");
+        console.log("   activatePolicy()");
+        console.log("         .");
+        console.log("         .");
+        console.log("");
+        console.log("---- After -----");
+        console.log("- SP Address     :", miner);
+        console.log("- Cover Amount   :", amount / 1e18, "FIL");
+        console.log("- Premium Amount :", premium / 1e18, "FIL");
+        console.log("- Duration       :", period / 60 / 60 / 24, "DAYS");
+        console.log("- Expiry         :", expiry, "(TIMESTAMP)");
+        console.log("- SP Score       :", score, "Pts");
+        console.log("- Approval?      :", isApproved);
+        console.log("- Active?        :", isActive);
+        console.log("- SP FIL Balance :", address(SP).balance / 1e18, "FIL");
+        console.log("");
+        console.log("");
+        console.log(
+            "//////////////////////////////////////////////////////////////////"
+        );
+        console.log("");
     }
 
     // Activation Helpers
@@ -255,19 +376,18 @@ contract Activation is PolicyOperationsBase {
 
     function beforeActivation() internal {
         uint256 PREMIUM = queryPremium();
-        vm.deal(address(assurageManager), PREMIUM);
+        vm.deal(address(SP), PREMIUM);
         vm.prank(SP);
     }
 
     function beforeActivationStart() internal {
         uint256 PREMIUM = queryPremium();
-        vm.deal(address(assurageManager), PREMIUM);
+        vm.deal(address(SP), PREMIUM);
         vm.startPrank(SP);
     }
 }
 
 // TEST COMMAND: forge test --match-contract Claim -vvvvv
-
 contract Claim is PolicyOperationsBase {
     function test_fileClaim_invalidCaller() external {
         uint256 id = _claimSetup();
@@ -282,7 +402,7 @@ contract Claim is PolicyOperationsBase {
 
     function test_fileClaim_invalidAmount() external {
         uint256 id = _claimSetup();
-        uint256 INVAlID_CLAIMABLE = 15e18;
+        uint256 INVAlID_CLAIMABLE = TEN_FIL + 1e18;
 
         vm.startPrank(SP);
         vm.expectRevert("INVALID_AMOUNT");
@@ -331,9 +451,9 @@ contract Claim is PolicyOperationsBase {
         vm.prank(SP);
         assurageManager.fileClaim(SP, id, CLAIMABLE);
 
-        vm.deal(address(LP), 10e18);
+        vm.deal(address(LP), LP_DEPOSIT);
         vm.prank(address(LP));
-        asset.deposit{value: 10e18}();
+        asset.deposit{value: LP_DEPOSIT}();
 
         vm.prank(SP);
         vm.expectRevert("NOT_CONFIRMED");
@@ -382,6 +502,8 @@ contract Claim is PolicyOperationsBase {
         assertTrue(isConfirmed);
         assertTrue(!isPaid);
 
+        consoleBefore(claimable, isConfirmed, isPaid);
+
         vm.prank(SP);
         assurageManager.claimCompensation(SP, id);
 
@@ -394,5 +516,52 @@ contract Claim is PolicyOperationsBase {
         (, , , , , , , bool isActive, ) = assurageManager.policies(SP, id);
 
         assertTrue(!isActive);
+
+        consoleAfter(claimable, isConfirmed, isPaid);
+    }
+
+    // consoles
+
+    function consoleBefore(
+        uint256 claimable,
+        bool isConfirmed,
+        bool isPaid
+    ) internal view {
+        console.log("");
+        console.log(
+            "/////////////////// --- CLAIM PAYMENT ---- ////////////////////////"
+        );
+        console.log("");
+        console.log("");
+        console.log("---- Before -----");
+        console.log("- Claimable      :", claimable / 1e18, "FIL");
+        console.log("- Confirmed?     :", isConfirmed);
+        console.log("- Paid?          :", isPaid);
+        console.log("- SP FIL Balance :", address(SP).balance / 1e18, "FIL");
+        console.log("");
+    }
+
+    function consoleAfter(
+        uint256 claimable,
+        bool isConfirmed,
+        bool isPaid
+    ) internal view {
+        console.log("         .");
+        console.log("         .");
+        console.log(" claimCompensation()");
+        console.log("         .");
+        console.log("         .");
+        console.log("");
+        console.log("---- After -----");
+        console.log("- Claimable      :", claimable / 1e18, "FIL");
+        console.log("- Confirmed?     :", isConfirmed);
+        console.log("- Paid?          :", isPaid);
+        console.log("- SP FIL Balance :", address(SP).balance / 1e18, "FIL");
+        console.log("");
+        console.log("");
+        console.log(
+            "//////////////////////////////////////////////////////////////////"
+        );
+        console.log("");
     }
 }

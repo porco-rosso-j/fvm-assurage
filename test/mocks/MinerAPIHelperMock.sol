@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity 0.8.17;
 
+// Non Mock Implementaion, MinerAPIHelper.sol is located in src/filecoin-api/..
+
 // A contract that handles fetching and validating return values via MinerAPI
 contract MinerAPIHepler {
     uint256 Silencer;
@@ -118,12 +120,11 @@ contract MinerAPIHepler {
     }
 
     function _withdrawBalance(address _miner, uint256 _amount)
-        internal
+        public
+        payable
         returns (bool)
     {
         Silencer = 0;
-        _miner;
-        _amount;
         // bytes memory _miner = getIdFromETHAddr(_add);
 
         // MinerTypes.WithdrawBalanceParams memory param;
@@ -136,19 +137,23 @@ contract MinerAPIHepler {
         //     "Invalid return value"
         // );
 
-        /* mock */
-        // bytes memory data = abi.encode(_amount);
-        // uint256 length = data.length;
-        // bool success;
-        // assembly {
-        //     let x := mload(0x40)
-        //     let d := add(data, 32)
-        //     success := call(gas(), _miner, 0, d, length, x, 0)
-        // }
-        // return success;
-        // (bool success, bytes memory data) = _miner.call(
-        //     abi.encodeWithSignature("sendEther(address,uint)", _miner, _amount)
-        // );
+        // mock withdrawal
+        bytes memory _data = abi.encode(address(this), _amount);
+
+        (bool success, bytes memory data) = _miner.call(_data);
+        require(success, "FAILED");
+
         return true;
     }
 }
+
+/*
+        (bool success, bytes memory data) = _miner.call(
+            abi.encodeWithSignature(
+                "sendFIL(address, uint256)",
+                payable(address(this)),
+                _amount
+            )
+        );
+        require(success, "FAILED");
+*/
