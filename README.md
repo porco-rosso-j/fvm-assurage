@@ -2,6 +2,8 @@
 
 This is the submission for the ongoing [ETHGlobal](https://ethglobal.com/) Hackathon: [Filecoin Space Warp](https://ethglobal.com/events/spacewarp).
 
+<img width="773" alt="Screen Shot 2023-02-06 at 8 35 53" src="https://user-images.githubusercontent.com/88586592/216884712-2bb3338e-93d3-4809-9136-0f88a4f82875.png">
+
 ## Introduction
 
 Assurage is an insurance app built on top of Filecoin EVM, which helps Storage Providers minimize their business risks. It enables SPs to obtain insurance that protects them from slashing penalties, so-called sector fault fees, which are imposed when they unexpectedly fail to maintain their operational requirements for providing storage on the Filecoin network.
