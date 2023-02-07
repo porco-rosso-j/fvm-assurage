@@ -76,7 +76,7 @@ As one of the most important modules for `AssurageManager.sol`, Zondax's Solidit
 
 ## Constraints and Solutions 
 
-Assurage's insurance scheme is not processed entirely on-chain but needs the Assurage Delegate or Assessor as an intermediary since, at this stage, there is no oracle that provides FVM data with contracts on FEVM in a trustless manner, it seems technically infeasible to fetch and store all data on SPs on-chain and algorithmically determine the validity of applications and claims. Hence, Assurage Delegates can be seen as centralized entities that could misbehave and become corrupt.
+Assurage's insurance scheme is not processed entirely on-chain but needs the Assurage Delegate or Assessor as an intermediary. Since, at this stage, there is no oracle that provides FVM data with contracts on FEVM in a trustless manner, it seems technically infeasible to fetch and store all data on SPs on-chain and algorithmically determine the validity of applications and claims. Hence, Assurage Delegates can be seen as centralized entities that could misbehave and become corrupt.
 
 That said, Assurage is designed to minimalize such risks by incentivizing the Delegates to be honest and diligent due to the market force: They have to show integrity continuously to compete with other delegates. Also, they can delegate their assessment work to another trusted entity called Assessor, which can be a multi-sig controlled address, instead of one person/entity, requiring N-of-M signatures(agreements) by a group of people consisting of well-known experts.
 
